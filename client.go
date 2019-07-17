@@ -16,12 +16,13 @@ import (
 
 // Client represents a client for the dwolla REST API.
 type Client struct {
-	Client       *http.Client //http client
-	Env          string       // either sandbox or production
-	ClientID     string       // Dwolla client ID
-	ClientSecret string       // Dwolla Client Secret
-	authToken    string       // Dowlla Auth token that expires in 1 hour
-	rootURL      string       // Root url of dwolla api. Differs according to Env
+	Client       *http.Client           //http client
+	Env          string                 // either sandbox or production
+	ClientID     string                 // Dwolla client ID
+	ClientSecret string                 // Dwolla Client Secret
+	authToken    string                 // Dowlla Auth token that expires in 1 hour
+	rootURL      string                 // Root url of dwolla api. Differs according to Env
+	Links        map[string]interface{} // Links to account resources
 }
 
 // CreateClient creates a new Dwolla Client
@@ -75,6 +76,9 @@ func (c *Client) SetAccessToken() error {
 	if err != nil {
 		return errors.Wrap(err, "error making request to dowlla api")
 	}
+	if resp.StatusCode != 200 {
+		return errors.New(resp.Status)
+	}
 	defer resp.Body.Close()
 	if err != nil {
 		return errors.Wrap(err, "failed to get access token from dwolla api")
@@ -85,6 +89,33 @@ func (c *Client) SetAccessToken() error {
 	}
 	c.authToken = token
 	return nil
+}
+
+// Root returns the resources avaliable by dwolla api
+func (c *Client) Root() (map[string]interface{}, error) {
+	// Request access token
+	req, err := http.NewRequest("GET", c.RootURL(), nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "error creating get root request")
+	}
+	token, err := c.AuthToken()
+	if err != nil {
+		return nil, errors.Wrap(err, "error refreshing access token")
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
+	res, err := c.Client.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "error making request to root endpoint")
+	}
+	defer res.Body.Close()
+	resources := make(map[string]interface{})
+	decoder := json.NewDecoder(res.Body)
+	err = decoder.Decode(&resources)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse json response")
+	}
+	return resources, nil
 }
 
 func decodeAuthTokenResp(r io.Reader) (string, error) {
