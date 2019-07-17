@@ -4,17 +4,20 @@ import (
 	"os"
 	"testing"
 
+	"github.com/ahmedaabouzied/dwolla/client"
 	"github.com/subosito/gotenv"
 )
 
-var clientLink = "https://api-sandbox.dwolla.com/accounts/bdb5a377-8c99-443c-b05d-0597bb656a83"
-
 func TestRetrieveAccount(t *testing.T) {
 	gotenv.Load("../.env")
-	token := os.Getenv("DWOLLA_TOKEN")
-	account, err := RetrieveAccount(clientLink, token)
+	client, err := client.CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
+	if err != nil {
+		t.Error(err)
+	}
+	account, err := RetrieveAccount(client)
 	if err != nil {
 		t.Error(err)
 	}
 	t.Log("account ID : ", account.ID)
+	t.Log("account link :", account.Links["self"]["href"])
 }

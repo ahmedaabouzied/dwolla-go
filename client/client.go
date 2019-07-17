@@ -1,7 +1,7 @@
 // Copyright 2019 Ahmed Abouzied. All rights reserved.
 
-// Package dwolla is a client library for Dwolla v2 rest api.
-package dwolla
+// Package client has the methods and structs to initiate a Dwolla api client
+package client
 
 import (
 	"bytes"
@@ -11,8 +11,14 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/ahmedaabouzied/dwolla/accounts"
 	"github.com/pkg/errors"
+)
+
+const (
+	// Sandbox dwolla account type
+	Sandbox string = "sandbox"
+	// Production dwolla account type
+	Production string = "production"
 )
 
 // Client represents a client for the dwolla REST API.
@@ -23,25 +29,28 @@ type Client struct {
 	authToken    string                       // Dowlla Auth token that expires in 1 hour
 	rootURL      string                       // Root url of dwolla api. Differs according to Env
 	Links        map[string]map[string]string // Links to account resources
-	Account      *accounts.Account
 }
 
 // CreateClient creates a new Dwolla Client
-func CreateClient(env string, clientID string, clientSecret string) *Client {
+func CreateClient(env string, clientID string, clientSecret string) (*Client, error) {
 	c := &Client{
 		Env:          env,
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 	}
 	switch env {
-	case "sandbox":
+	case Sandbox:
 		c.setRootURL("https://api-sandbox.dwolla.com")
-	case "production":
+	case Production:
 		c.setRootURL("https://api.dwolla.com")
 	default:
 		c.setRootURL("https://api-sandbox.dwolla.com")
 	}
-	return c
+	_, err := c.Root()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get client links")
+	}
+	return c, nil
 }
 
 // SetRootURL sets the rootURL of the client to the given value
@@ -120,19 +129,6 @@ func (c *Client) Root() (map[string]map[string]string, error) {
 	}
 	c.Links = resources["_links"]
 	return c.Links, nil
-}
-
-// RetrieveAccount returns the master dwolla account
-func (c *Client) RetrieveAccount() (*accounts.Account, error) {
-	token, err := c.AuthToken()
-	if err != nil {
-		return nil, errors.Wrap(err, "error getting auth token")
-	}
-	account, err := accounts.RetrieveAccount(c.Links["account"]["href"], token)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to retriev account")
-	}
-	return account, nil
 }
 
 func decodeAuthTokenResp(r io.Reader) (string, error) {
