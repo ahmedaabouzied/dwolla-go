@@ -23,11 +23,24 @@ func TestAuthToken(t *testing.T) {
 	t.Log(token)
 }
 
+func TestRetrieveAccount(t *testing.T) {
+	gotenv.Load(".env")
+	client := CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
+	_, err := client.Root()
+	if err != nil {
+		t.Error(err)
+	}
+	account, err := client.RetrieveAccount()
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log("Account ID : ", account.ID)
+}
 func TestRoot(t *testing.T) {
 	client := CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
 	resources, err := client.Root()
 	if err != nil {
 		t.Error(err)
 	}
-	t.Log(resources["_links"])
+	t.Log(resources["account"]["href"])
 }
