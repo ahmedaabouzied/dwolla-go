@@ -144,7 +144,7 @@ func (a *Account) ListMassPayments(c *client.Client) ([]masspayment.MassPayment,
 		err = d.Decode(body)
 		return body.Embedded["mass-payments"], nil
 	case 403:
-		return nil, errors.New("not authorized to list funding sources")
+		return nil, errors.New("not authorized to list mass payments")
 	case 404:
 		return nil, errors.New("account not found")
 	default:
