@@ -31,6 +31,13 @@ type Client struct {
 	Links        map[string]map[string]string // Links to account resources
 }
 
+// Link represents URL to and endpoint in dwolla api
+type Link struct {
+	Href         string `json:"href"`
+	Type         string `json:"type"`
+	ResourceType string `json:"resource-type"`
+}
+
 // CreateClient creates a new Dwolla Client
 func CreateClient(env string, clientID string, clientSecret string) (*Client, error) {
 	c := &Client{

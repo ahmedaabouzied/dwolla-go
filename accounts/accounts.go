@@ -1,6 +1,7 @@
 package accounts
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 
@@ -53,7 +54,11 @@ func (a *Account) CreateFundingSource(c *client.Client, fundingResource *funding
 	if err != nil {
 		return errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("POST", c.RootURL()+"/funding-sources", nil)
+	body, err := json.Marshal(fundingResource)
+	if err != nil {
+		return errors.Wrap(err, "error marshalling funding resource into req body")
+	}
+	req, err := http.NewRequest("POST", c.RootURL()+"/funding-sources", bytes.NewReader(body))
 	if err != nil {
 		return errors.Wrap(err, "error creating the request")
 	}
@@ -66,7 +71,47 @@ func (a *Account) CreateFundingSource(c *client.Client, fundingResource *funding
 	}
 	defer res.Body.Close()
 	if res.StatusCode != 201 {
-		return errors.New(res.Status)
+		switch res.StatusCode {
+		case 400:
+			return errors.Wrap(errors.New("Bad Request"), "duplicate funding resource of validation error")
+		case 403:
+			return errors.Wrap(errors.New("Unauthorized"), "not authorized to create funding resource")
+		default:
+			return errors.New(res.Status)
+		}
 	}
 	return nil
+}
+
+// ListFundingResources retrieves a list of funding sources that belong to an Account
+func (a *Account) ListFundingResources(c *client.Client) ([]funding.Resource, error) {
+	hc := &http.Client{}
+	token, err := c.AuthToken()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get auth token")
+	}
+	req, err := http.NewRequest("GET", a.Links["funding-sources"]["href"], nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "error creating the request")
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
+	res, err := hc.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to make request to dwolla server")
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 200:
+		d := json.NewDecoder(res.Body)
+		body := &funding.ListResourcesResponse{}
+		err = d.Decode(body)
+		return body.Embeded["funding-sources"], nil
+	case 403:
+		return nil, errors.New("not authorized to list funding sources")
+	case 404:
+		return nil, errors.New("account not found")
+	default:
+		return nil, errors.New(res.Status)
+	}
 }
