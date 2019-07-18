@@ -71,3 +71,29 @@ func TestUpdate(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestAddDocument(t *testing.T) {
+	gotenv.Load("../.env")
+	client, err := client.CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
+	if err != nil {
+		t.Error(err)
+	}
+	customers, err := List(client)
+	if err != nil {
+		t.Error(err)
+	}
+	customer, err := GetCustomer(client, customers[0].ID)
+	if err != nil {
+		t.Error(err)
+	}
+	// Create a file called test.png before running tests
+	file, err := os.Open("test.png")
+	if err != nil {
+		t.Error(err)
+	}
+	defer file.Close()
+	err = customer.AddDocument(client, file, "passport")
+	if err != nil {
+		t.Error(err)
+	}
+}

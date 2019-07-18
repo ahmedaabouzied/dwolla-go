@@ -3,7 +3,10 @@ package customer
 import (
 	"bytes"
 	"encoding/json"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
 
 	"github.com/ahmedaabouzied/dwolla/client"
 	"github.com/pkg/errors"
@@ -165,6 +168,65 @@ func (cu *Customer) Update(c *client.Client) error {
 		return nil
 	case 403:
 		return errors.New("not authorized to update the customer")
+	case 404:
+		return errors.New("account not found")
+	default:
+		return errors.New(res.Status)
+	}
+
+}
+
+// TODO : Add ListBusinessClassification Method
+
+// TODO : Add RetrieveBusinessClassification Method
+
+// AddDocument uploads a document to a customer for verification
+func (cu *Customer) AddDocument(c *client.Client, file *os.File, documentType string) error {
+	hc := &http.Client{}
+	token, err := c.AuthToken()
+	if err != nil {
+		return errors.Wrap(err, "failed to get auth token")
+	}
+	if err != nil {
+		return errors.Wrap(err, "error parsing file")
+	}
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	// file, err := fileHeader.Open()
+	// if err != nil {
+	// 	return errors.Wrap(err, "error opening file")
+	// }
+	part, err := writer.CreateFormFile("file", file.Name())
+	if err != nil {
+		return errors.Wrap(err, "error uploading file")
+	}
+	_, err = io.Copy(part, file)
+	if err != nil {
+		return errors.Wrap(err, "error uploading file")
+	}
+	err = writer.WriteField("documentType", documentType)
+	if err != nil {
+		return errors.Wrap(err, "error uploading file")
+	}
+	writer.Close()
+	req, err := http.NewRequest("POST", cu.Links["self"].Href+"/documents", body)
+	if err != nil {
+		return errors.Wrap(err, "error creating the request")
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
+	req.Header.Add("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW")
+	req.Header.Add("Cache-Control", "no-cache")
+	res, err := hc.Do(req)
+	if err != nil {
+		return errors.Wrap(err, "failed to make request to dwolla api")
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 201:
+		return nil
+	case 403:
+		return errors.New("not authorized to uplaod document to customer")
 	case 404:
 		return errors.New("account not found")
 	default:
