@@ -1,4 +1,4 @@
-module github.com/ahmedaabouzied/dwolla-go
+module github.com/ahmedaabouzied/dwolla-go/dwolla
 
 go 1.12
 
