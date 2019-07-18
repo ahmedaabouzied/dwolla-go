@@ -61,3 +61,19 @@ func TestListFundingSources(t *testing.T) {
 	}
 	t.Log(sources[0].ID)
 }
+
+func TestListMassPayments(t *testing.T) {
+	gotenv.Load("../.env")
+	client, err := client.CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
+	if err != nil {
+		t.Error(err)
+	}
+	account, err := RetrieveAccount(client)
+	if err != nil {
+		t.Error(err)
+	}
+	_, err = account.ListMassPayments(client)
+	if err != nil {
+		t.Error(err)
+	}
+}

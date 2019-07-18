@@ -7,6 +7,7 @@ import (
 
 	"github.com/ahmedaabouzied/dwolla/client"
 	"github.com/ahmedaabouzied/dwolla/funding"
+	"github.com/ahmedaabouzied/dwolla/masspayment"
 	"github.com/pkg/errors"
 )
 
@@ -107,6 +108,43 @@ func (a *Account) ListFundingResources(c *client.Client) ([]funding.Resource, er
 		body := &funding.ListResourcesResponse{}
 		err = d.Decode(body)
 		return body.Embeded["funding-sources"], nil
+	case 403:
+		return nil, errors.New("not authorized to list funding sources")
+	case 404:
+		return nil, errors.New("account not found")
+	default:
+		return nil, errors.New(res.Status)
+	}
+}
+
+// TODO : Add ListAndSearchTransfers method
+
+// ListMassPayments retrieves an Account’s list of previously created mass payments
+func (a *Account) ListMassPayments(c *client.Client) ([]masspayment.MassPayment, error) {
+	hc := &http.Client{}
+	token, err := c.AuthToken()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get auth token")
+	}
+	req, err := http.NewRequest("GET", a.Links["self"]["href"]+"/mass-payments", nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "error creating the request")
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
+	res, err := hc.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to make request to dwolla server")
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 200:
+		// io.Copy(os.Stdout, res.Body)
+		// return nil, nil
+		d := json.NewDecoder(res.Body)
+		body := &masspayment.ListMassPaymentsResponse{}
+		err = d.Decode(body)
+		return body.Embedded["mass-payments"], nil
 	case 403:
 		return nil, errors.New("not authorized to list funding sources")
 	case 404:
