@@ -1,4 +1,4 @@
-package accounts
+package account
 
 import (
 	"bytes"
@@ -139,8 +139,6 @@ func (a *Account) ListMassPayments(c *client.Client) ([]masspayment.MassPayment,
 	defer res.Body.Close()
 	switch res.StatusCode {
 	case 200:
-		// io.Copy(os.Stdout, res.Body)
-		// return nil, nil
 		d := json.NewDecoder(res.Body)
 		body := &masspayment.ListMassPaymentsResponse{}
 		err = d.Decode(body)
