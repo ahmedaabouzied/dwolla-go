@@ -118,3 +118,30 @@ func TestListDocuments(t *testing.T) {
 	}
 	t.Log("number of docs : ", len(documnets))
 }
+
+func TestGetDocument(t *testing.T) {
+	gotenv.Load("../.env")
+	client, err := client.CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
+	if err != nil {
+		t.Error(err)
+	}
+	customers, err := List(client)
+	if err != nil {
+		t.Error(err)
+	}
+	customer, err := GetCustomer(client, customers[0].ID)
+	if err != nil {
+		t.Error(err)
+	}
+	documents, err := customer.ListDocuments(client)
+	if err != nil {
+		t.Error(err)
+	}
+	if len(documents) > 0 {
+		document, err := GetDocument(client, documents[0].ID)
+		if err != nil {
+			t.Error(err)
+		}
+		t.Log(document.ID)
+	}
+}

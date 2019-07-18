@@ -281,3 +281,40 @@ func (cu *Customer) ListDocuments(c *client.Client) ([]Document, error) {
 		return nil, errors.New(res.Status)
 	}
 }
+
+// TODO : Add CreateDocumentForBenificialOwner method.
+
+// TODO : Add ListDocumentsForBenificialOwner method.
+
+// GetDocument retrieves a docuemnt by ID
+func GetDocument(c *client.Client, docuemntID string) (*Document, error) {
+	hc := &http.Client{}
+	token, err := c.AuthToken()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get auth token")
+	}
+	req, err := http.NewRequest("GET", c.RootURL()+"/documents/"+docuemntID, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "error creating the request")
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
+	res, err := hc.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to make request to dwolla api")
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 200:
+		d := json.NewDecoder(res.Body)
+		body := &Document{}
+		err = d.Decode(body)
+		return body, nil
+	case 403:
+		return nil, errors.New("not authorized to retrieve the customer")
+	case 404:
+		return nil, errors.New("account not found")
+	default:
+		return nil, errors.New(res.Status)
+	}
+}
