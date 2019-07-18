@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ahmedaabouzied/dwolla/client"
-	"github.com/ahmedaabouzied/dwolla/funding"
+	"github.com/ahmedaabouzied/dwolla-go/client"
+	"github.com/ahmedaabouzied/dwolla-go/funding"
 	"github.com/subosito/gotenv"
 )
 

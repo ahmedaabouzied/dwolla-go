@@ -1,6 +1,7 @@
+// Package funding provides methods to use funding resources via dwolla api.
 package funding
 
-import "github.com/ahmedaabouzied/dwolla/client"
+import "github.com/ahmedaabouzied/dwolla-go/client"
 
 // Resource represents bank account connected to dwolla account
 type Resource struct {

@@ -1,6 +1,7 @@
+// Package masspayment provides methods to use mass payments via the dwolla api.
 package masspayment
 
-import "github.com/ahmedaabouzied/dwolla/client"
+import "github.com/ahmedaabouzied/dwolla-go/client"
 
 // MassPayment represents a mass payment on dwolla api
 type MassPayment struct {

@@ -1,3 +1,4 @@
+// Package account provides methods to use the dwolla api to manage master dwolla account.
 package account
 
 import (
@@ -5,9 +6,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/ahmedaabouzied/dwolla/client"
-	"github.com/ahmedaabouzied/dwolla/funding"
-	"github.com/ahmedaabouzied/dwolla/masspayment"
+	"github.com/ahmedaabouzied/dwolla-go/client"
+	"github.com/ahmedaabouzied/dwolla-go/funding"
+	"github.com/ahmedaabouzied/dwolla-go/masspayment"
 	"github.com/pkg/errors"
 )
 

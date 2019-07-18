@@ -1,3 +1,4 @@
+// Package customer provides methods to use customers via the dwolla api.
 package customer
 
 import (
@@ -8,7 +9,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/ahmedaabouzied/dwolla/client"
+	"github.com/ahmedaabouzied/dwolla-go/client"
 	"github.com/pkg/errors"
 )
 
@@ -147,14 +148,11 @@ func GetCustomer(c *client.Client, customerID string) (*Customer, error) {
 }
 
 // Update can be used to achieve the following :
-//
-//
-// Update Customer information,
+// update Customer information,
 // upgrade an unverified Customer to a verified Customer,
 // suspend a Customer, deactivate a Customer,
 // reactivate a Customer,
-// and update a verified Customer’s information to retry verification
-//
+// and update a verified Customer’s information to retry verification.
 func (cu *Customer) Update(c *client.Client) error {
 	hc := &http.Client{}
 	token, err := c.AuthToken()
@@ -206,10 +204,6 @@ func (cu *Customer) AddDocument(c *client.Client, file *os.File, documentType st
 	}
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	// file, err := fileHeader.Open()
-	// if err != nil {
-	// 	return errors.Wrap(err, "error opening file")
-	// }
 	part, err := writer.CreateFormFile("file", file.Name())
 	if err != nil {
 		return errors.Wrap(err, "error uploading file")

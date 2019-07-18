@@ -1,6 +1,4 @@
-// Copyright 2019 Ahmed Abouzied. All rights reserved.
-
-// Package client has the methods and structs to initiate a Dwolla api client
+// Package client has the methods and structs to initiate a Dwolla api client.
 package client
 
 import (
