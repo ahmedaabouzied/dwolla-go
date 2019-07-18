@@ -4,12 +4,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ahmedaabouzied/dwolla-go/client"
+	"github.com/ahmedaabouzied/dwolla-go/dwolla/client"
 	"github.com/subosito/gotenv"
 )
 
 func TestCreate(t *testing.T) {
-	gotenv.Load("../../env")
+	gotenv.Load("../../.env")
 	client, err := client.CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
 	if err != nil {
 		t.Error(err)
@@ -22,7 +22,7 @@ func TestCreate(t *testing.T) {
 }
 
 func TestList(t *testing.T) {
-	gotenv.Load("../../env")
+	gotenv.Load("../../.env")
 	client, err := client.CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
 	if err != nil {
 		t.Error(err)
@@ -35,7 +35,7 @@ func TestList(t *testing.T) {
 }
 
 func TestGetCustomer(t *testing.T) {
-	gotenv.Load("../../env")
+	gotenv.Load("../../.env")
 	client, err := client.CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
 	if err != nil {
 		t.Error(err)
@@ -52,7 +52,7 @@ func TestGetCustomer(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	gotenv.Load("../../env")
+	gotenv.Load("../../.env")
 	client, err := client.CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
 	if err != nil {
 		t.Error(err)
@@ -73,7 +73,7 @@ func TestUpdate(t *testing.T) {
 }
 
 // func TestAddDocument(t *testing.T) {
-// 	gotenv.Load("../../env")
+// 	gotenv.Load("../../.env")
 // 	client, err := client.CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
 // 	if err != nil {
 // 		t.Error(err)
@@ -99,7 +99,7 @@ func TestUpdate(t *testing.T) {
 // }
 
 func TestListDocuments(t *testing.T) {
-	gotenv.Load("../../env")
+	gotenv.Load("../../.env")
 	client, err := client.CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
 	if err != nil {
 		t.Error(err)
@@ -120,7 +120,7 @@ func TestListDocuments(t *testing.T) {
 }
 
 func TestGetDocument(t *testing.T) {
-	gotenv.Load("../../env")
+	gotenv.Load("../../.env")
 	client, err := client.CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
 	if err != nil {
 		t.Error(err)

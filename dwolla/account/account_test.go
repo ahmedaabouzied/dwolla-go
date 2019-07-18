@@ -4,13 +4,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/ahmedaabouzied/dwolla-go/client"
-	"github.com/ahmedaabouzied/dwolla-go/funding"
+	"github.com/ahmedaabouzied/dwolla-go/dwolla/client"
+	"github.com/ahmedaabouzied/dwolla-go/dwolla/funding"
 	"github.com/subosito/gotenv"
 )
 
 func TestRetrieveAccount(t *testing.T) {
-	gotenv.Load("../../env")
+	gotenv.Load("../../.env")
 	client, err := client.CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
 	if err != nil {
 		t.Error(err)
@@ -24,7 +24,7 @@ func TestRetrieveAccount(t *testing.T) {
 }
 
 func TestCreateFundingSource(t *testing.T) {
-	gotenv.Load("../../env")
+	gotenv.Load("../../.env")
 	client, err := client.CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
 	if err != nil {
 		t.Error(err)
@@ -46,7 +46,7 @@ func TestCreateFundingSource(t *testing.T) {
 }
 
 func TestListFundingSources(t *testing.T) {
-	gotenv.Load("../../env")
+	gotenv.Load("../../.env")
 	client, err := client.CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
 	if err != nil {
 		t.Error(err)
@@ -63,7 +63,7 @@ func TestListFundingSources(t *testing.T) {
 }
 
 func TestListMassPayments(t *testing.T) {
-	gotenv.Load("../../env")
+	gotenv.Load("../../.env")
 	client, err := client.CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
 	if err != nil {
 		t.Error(err)

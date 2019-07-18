@@ -11,7 +11,7 @@ import (
 )
 
 func TestAuthToken(t *testing.T) {
-	gotenv.Load("../../env")
+	gotenv.Load("../../.env")
 	client, err := CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
 	if err != nil {
 		t.Error(err)
@@ -27,7 +27,7 @@ func TestAuthToken(t *testing.T) {
 }
 
 func TestRoot(t *testing.T) {
-	gotenv.Load("../../env")
+	gotenv.Load("../../.env")
 	client, err := CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
 	if err != nil {
 		t.Error(err)

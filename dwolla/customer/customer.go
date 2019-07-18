@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/ahmedaabouzied/dwolla-go/client"
+	"github.com/ahmedaabouzied/dwolla-go/dwolla/client"
 	"github.com/pkg/errors"
 )
 

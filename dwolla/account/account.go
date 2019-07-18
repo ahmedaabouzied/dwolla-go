@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/ahmedaabouzied/dwolla-go/client"
-	"github.com/ahmedaabouzied/dwolla-go/funding"
-	"github.com/ahmedaabouzied/dwolla-go/masspayment"
+	"github.com/ahmedaabouzied/dwolla-go/dwolla/client"
+	"github.com/ahmedaabouzied/dwolla-go/dwolla/funding"
+	"github.com/ahmedaabouzied/dwolla-go/dwolla/masspayment"
 	"github.com/pkg/errors"
 )
 

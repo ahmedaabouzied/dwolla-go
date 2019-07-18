@@ -1,3 +1,4 @@
+github.com/ahmedaabouzied/dwolla-go v0.0.0-20190718135821-6a7f2587d950 h1:uI3nmZHZc1NahFN1SOxewrqp8IGZk2KvmNY4881lrbs=
 github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/subosito/gotenv v1.1.1 h1:TWxckSF6WVKWbo2M3tMqCtWa9NFUgqM1SSynxmYONOI=
