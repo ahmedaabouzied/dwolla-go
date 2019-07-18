@@ -23,6 +23,11 @@ type Customer struct {
 	Links        map[string]client.Link `json:"_links"`
 }
 
+type listCustomersResponse struct {
+	Links    map[string]client.Link `json:"_links"`
+	Embedded map[string][]Customer  `json:"_embedded"`
+}
+
 // Create a new customer
 func Create(c *client.Client, cu *Customer) error {
 	hc := &http.Client{}
@@ -55,5 +60,71 @@ func Create(c *client.Client, cu *Customer) error {
 		return errors.New("account not found")
 	default:
 		return errors.New(res.Status)
+	}
+}
+
+// List retrieves a list of created customers
+func List(c *client.Client) ([]Customer, error) {
+	hc := &http.Client{}
+	token, err := c.AuthToken()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get auth token")
+	}
+	req, err := http.NewRequest("GET", c.Links["customers"]["href"], nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "error creating the request")
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
+	res, err := hc.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to make request to dwolla api")
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 200:
+		d := json.NewDecoder(res.Body)
+		body := &listCustomersResponse{}
+		err = d.Decode(body)
+		return body.Embedded["customers"], nil
+	case 403:
+		return nil, errors.New("not authorized to list customers")
+	case 404:
+		return nil, errors.New("account not found")
+	default:
+		return nil, errors.New(res.Status)
+	}
+}
+
+// GetCustomer retrieves a customer belonging to the authorized Dwolla Master Account by it's ID
+func GetCustomer(c *client.Client, customerID string) (*Customer, error) {
+	hc := &http.Client{}
+	token, err := c.AuthToken()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get auth token")
+	}
+	req, err := http.NewRequest("GET", c.Links["customers"]["href"]+"/"+customerID, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "error creating the request")
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
+	res, err := hc.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to make request to dwolla api")
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 200:
+		d := json.NewDecoder(res.Body)
+		body := &Customer{}
+		err = d.Decode(body)
+		return body, nil
+	case 403:
+		return nil, errors.New("not authorized to retrieve the customer")
+	case 404:
+		return nil, errors.New("account not found")
+	default:
+		return nil, errors.New(res.Status)
 	}
 }

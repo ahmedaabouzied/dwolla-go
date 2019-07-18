@@ -20,3 +20,33 @@ func TestCreate(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestList(t *testing.T) {
+	gotenv.Load("../.env")
+	client, err := client.CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
+	if err != nil {
+		t.Error(err)
+	}
+	customers, err := List(client)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(customers[0].ID)
+}
+
+func TestGetCustomer(t *testing.T) {
+	gotenv.Load("../.env")
+	client, err := client.CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
+	if err != nil {
+		t.Error(err)
+	}
+	customers, err := List(client)
+	if err != nil {
+		t.Error(err)
+	}
+	customer, err := GetCustomer(client, customers[0].ID)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(customer.ID)
+}
