@@ -26,9 +26,23 @@ type Customer struct {
 	Links        map[string]client.Link `json:"_links"`
 }
 
+// Document is a file sumbitted to dwolla to be validated
+type Document struct {
+	Links     map[string]client.Link `json:"_links"`
+	ID        string                 `json:"id"`
+	Status    string                 `json:"status"`
+	Type      string                 `json:"passport"`
+	CreatedAt string                 `json:"created"`
+}
+
 type listCustomersResponse struct {
 	Links    map[string]client.Link `json:"_links"`
 	Embedded map[string][]Customer  `json:"_embedded"`
+}
+
+type listDocumentsResponse struct {
+	Links    map[string]client.Link `json:"_links"`
+	Embedded map[string][]Document  `json:"_embedded"`
 }
 
 // Create a new customer
@@ -233,4 +247,37 @@ func (cu *Customer) AddDocument(c *client.Client, file *os.File, documentType st
 		return errors.New(res.Status)
 	}
 
+}
+
+// ListDocuments retrieves documents submitted to be validated for this customer
+func (cu *Customer) ListDocuments(c *client.Client) ([]Document, error) {
+	hc := &http.Client{}
+	token, err := c.AuthToken()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get auth token")
+	}
+	req, err := http.NewRequest("GET", cu.Links["self"].Href+"/documents", nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "error creating the request")
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
+	res, err := hc.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to make request to dwolla api")
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 200:
+		d := json.NewDecoder(res.Body)
+		body := &listDocumentsResponse{}
+		err = d.Decode(body)
+		return body.Embedded["documents"], nil
+	case 403:
+		return nil, errors.New("not authorized to list customers")
+	case 404:
+		return nil, errors.New("account not found")
+	default:
+		return nil, errors.New(res.Status)
+	}
 }
