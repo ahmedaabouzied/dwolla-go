@@ -128,3 +128,47 @@ func GetCustomer(c *client.Client, customerID string) (*Customer, error) {
 		return nil, errors.New(res.Status)
 	}
 }
+
+// Update can be used to achieve the following :
+//
+//
+// Update Customer information,
+// upgrade an unverified Customer to a verified Customer,
+// suspend a Customer, deactivate a Customer,
+// reactivate a Customer,
+// and update a verified Customer’s information to retry verification
+//
+func (cu *Customer) Update(c *client.Client) error {
+	hc := &http.Client{}
+	token, err := c.AuthToken()
+	if err != nil {
+		return errors.Wrap(err, "failed to get auth token")
+	}
+	body, err := json.Marshal(cu)
+	if err != nil {
+		return errors.Wrap(err, "error marshalling customer into req body")
+	}
+	req, err := http.NewRequest("POST", cu.Links["self"].Href, bytes.NewReader(body))
+	if err != nil {
+		return errors.Wrap(err, "error creating the request")
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
+	req.Header.Add("Content-Type", "application/vnd.dwolla.v1.hal+json")
+	res, err := hc.Do(req)
+	if err != nil {
+		return errors.Wrap(err, "failed to make request to dwolla api")
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 200:
+		return nil
+	case 403:
+		return errors.New("not authorized to update the customer")
+	case 404:
+		return errors.New("account not found")
+	default:
+		return errors.New(res.Status)
+	}
+
+}

@@ -48,5 +48,26 @@ func TestGetCustomer(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	t.Log(customer.ID)
+	t.Log(customer.LastName)
+}
+
+func TestUpdate(t *testing.T) {
+	gotenv.Load("../.env")
+	client, err := client.CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
+	if err != nil {
+		t.Error(err)
+	}
+	customers, err := List(client)
+	if err != nil {
+		t.Error(err)
+	}
+	customer, err := GetCustomer(client, customers[0].ID)
+	if err != nil {
+		t.Error(err)
+	}
+	customer.LastName = "Doe"
+	err = customer.Update(client)
+	if err != nil {
+		t.Error(err)
+	}
 }
