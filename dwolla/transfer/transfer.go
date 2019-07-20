@@ -1,3 +1,4 @@
+// Package transfer has transfer related methods and structs.
 package transfer
 
 import (
@@ -28,6 +29,7 @@ type ListTransferResponse struct {
 	Embedded map[string][]Transfer  `json:"_embedded"`
 }
 
+// OnDemandAuthResponse is the response for the on-demand-authorization endpoint.
 type OnDemandAuthResponse struct {
 	Links      map[string]client.Link `json:"_links"`
 	BodyText   string                 `json:"bodyText"`
@@ -198,7 +200,7 @@ func (t *Transfer) Cancel(c *client.Client) (*Transfer, error) {
 	}
 }
 
-// CreateOnDemandAuth  create an on-demand bank transfer authorization for your Customer.
+// CreateOnDemandAuth create an on-demand bank transfer authorization for your Customer.
 // On-demand authorization allows Customers to authorize Dwolla to transfer variable amounts
 // from their bank account using ACH at a later point in time for products or services delivered.
 // This on-demand authorization is supplied along with the Customer’s bank details when creating
