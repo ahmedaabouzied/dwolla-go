@@ -11,6 +11,7 @@ import (
 
 	"github.com/ahmedaabouzied/dwolla-go/dwolla/client"
 	"github.com/ahmedaabouzied/dwolla-go/dwolla/funding"
+	"github.com/ahmedaabouzied/dwolla-go/dwolla/transfer"
 	"github.com/pkg/errors"
 )
 
@@ -441,6 +442,39 @@ func (cu *Customer) ListFundingSources(c *client.Client) ([]funding.Resource, er
 		return body.Embedded["funding-sources"], nil
 	case 403:
 		return nil, errors.New("not authorized to list funding sources")
+	case 404:
+		return nil, errors.New("customer not found")
+	default:
+		return nil, errors.New(res.Status)
+	}
+}
+
+// ListTransfers retrieves the customer's list of transfers.
+func (cu *Customer) ListTransfers(c *client.Client) ([]transfer.Transfer, error) {
+	hc := &http.Client{}
+	token, err := c.AuthToken()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get auth token")
+	}
+	req, err := http.NewRequest("GET", cu.Links["self"].Href+"/transfers", nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "error creating the request")
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
+	res, err := hc.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to make request to dwolla api")
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 200:
+		d := json.NewDecoder(res.Body)
+		body := &transfer.ListTransferResponse{}
+		err = d.Decode(body)
+		return body.Embedded["transfers"], nil
+	case 403:
+		return nil, errors.New("not authorized to list transfers")
 	case 404:
 		return nil, errors.New("customer not found")
 	default:
