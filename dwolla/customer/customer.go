@@ -47,6 +47,11 @@ type listDocumentsResponse struct {
 	Embedded map[string][]Document  `json:"_embedded"`
 }
 
+type createFudingSourceToken struct {
+	Token string                       `json:"token"`
+	Links map[string]map[string]string `json:"_links"`
+}
+
 // Create a new customer
 func Create(c *client.Client, cu *Customer) error {
 	hc := &http.Client{}
@@ -314,14 +319,14 @@ func GetDocument(c *client.Client, docuemntID string) (*Document, error) {
 	}
 }
 
-// CreateFundingResource creates a funding source for a customer
-func (cu *Customer) CreateFundingResource(c *client.Client, f *funding.Resource) error {
+// CreateFundingSource creates a funding source for a customer
+func (cu *Customer) CreateFundingSource(c *client.Client, f *funding.Resource) error {
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
 		return errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", cu.Links["self"].Href+"/funding-sources", nil)
+	req, err := http.NewRequest("POST", cu.Links["self"].Href+"/funding-sources", nil)
 	if err != nil {
 		return errors.Wrap(err, "error creating the request")
 	}
@@ -334,13 +339,45 @@ func (cu *Customer) CreateFundingResource(c *client.Client, f *funding.Resource)
 	}
 	defer res.Body.Close()
 	switch res.StatusCode {
-	case 200:
+	case 201:
 		return nil
 	case 403:
-		return errors.New("not authorized to retrieve the customer")
-	case 404:
-		return errors.New("account not found")
+		return errors.New("not authorized to create funding source")
+	case 400:
+		return errors.New("duplicate funding source or validation error. Authorization already associated to a funding source")
 	default:
 		return errors.New(res.Status)
+	}
+}
+
+// CreateFundingSourceToken creates a new funding source from a token via dwolla.js
+func (cu *Customer) CreateFundingSourceToken(c *client.Client) (string, error) {
+	hc := &http.Client{}
+	token, err := c.AuthToken()
+	if err != nil {
+		return "", errors.Wrap(err, "failed to get auth token")
+	}
+	req, err := http.NewRequest("POST", cu.Links["self"].Href+"/funding-sources-token", nil)
+	if err != nil {
+		return "", errors.Wrap(err, "error creating the request")
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
+	req.Header.Add("Conetent-Type", "application/vnd.dwolla.v1.hal+json")
+	res, err := hc.Do(req)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to make request to dwolla api")
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 200:
+		d := json.NewDecoder(res.Body)
+		body := &createFudingSourceToken{}
+		err = d.Decode(body)
+		return body.Token, nil
+	case 404:
+		return "", errors.New("customer not found")
+	default:
+		return "", errors.New(res.Status)
 	}
 }
