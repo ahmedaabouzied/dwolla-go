@@ -213,3 +213,23 @@ func TestCreateIAVFundingSourceToken(t *testing.T) {
 	}
 	t.Log("token : ", token)
 }
+func TestListFundingSources(t *testing.T) {
+	gotenv.Load("../../.env")
+	client, err := client.CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
+	if err != nil {
+		t.Error(err)
+	}
+	customers, err := List(client)
+	if err != nil {
+		t.Error(err)
+	}
+	customer, err := GetCustomer(client, customers[0].ID)
+	if err != nil {
+		t.Error(err)
+	}
+	sources, err := customer.ListFundingSources(client)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(len(sources))
+}

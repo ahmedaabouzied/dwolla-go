@@ -29,8 +29,8 @@ type Resource struct {
 // ListResourcesResponse is the response that is returned by dwolla
 // to list funding resources request.
 type ListResourcesResponse struct {
-	Links   map[string]client.Link `json:"_links"`
-	Embeded map[string][]Resource  `json:"_embedded"`
+	Links    map[string]client.Link `json:"_links"`
+	Embedded map[string][]Resource  `json:"_embedded"`
 }
 
 // GetFundingSource retrieves a funding source by id.

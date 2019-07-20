@@ -413,3 +413,37 @@ func (cu *Customer) CreateIAVFundingSourceToken(c *client.Client) (string, error
 		return "", errors.New(res.Status)
 	}
 }
+
+// ListFundingSources retrieves funding sources that belong to the customer.
+func (cu *Customer) ListFundingSources(c *client.Client) ([]funding.Resource, error) {
+	hc := &http.Client{}
+	token, err := c.AuthToken()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get auth token")
+	}
+	req, err := http.NewRequest("GET", cu.Links["self"].Href+"/funding-sources", nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "error creating the request")
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
+	req.Header.Add("Conetent-Type", "application/vnd.dwolla.v1.hal+json")
+	res, err := hc.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to make request to dwolla api")
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 200:
+		d := json.NewDecoder(res.Body)
+		body := &funding.ListResourcesResponse{}
+		err = d.Decode(body)
+		return body.Embedded["funding-sources"], nil
+	case 403:
+		return nil, errors.New("not authorized to list funding sources")
+	case 404:
+		return nil, errors.New("customer not found")
+	default:
+		return nil, errors.New(res.Status)
+	}
+}

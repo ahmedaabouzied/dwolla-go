@@ -108,7 +108,7 @@ func (a *Account) ListFundingResources(c *client.Client) ([]funding.Resource, er
 		d := json.NewDecoder(res.Body)
 		body := &funding.ListResourcesResponse{}
 		err = d.Decode(body)
-		return body.Embeded["funding-sources"], nil
+		return body.Embedded["funding-sources"], nil
 	case 403:
 		return nil, errors.New("not authorized to list funding sources")
 	case 404:
