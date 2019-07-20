@@ -10,6 +10,7 @@ import (
 	"os"
 
 	"github.com/ahmedaabouzied/dwolla-go/dwolla/client"
+	"github.com/ahmedaabouzied/dwolla-go/dwolla/funding"
 	"github.com/pkg/errors"
 )
 
@@ -310,5 +311,36 @@ func GetDocument(c *client.Client, docuemntID string) (*Document, error) {
 		return nil, errors.New("account not found")
 	default:
 		return nil, errors.New(res.Status)
+	}
+}
+
+// CreateFundingResource creates a funding source for a customer
+func (cu *Customer) CreateFundingResource(c *client.Client, f *funding.Resource) error {
+	hc := &http.Client{}
+	token, err := c.AuthToken()
+	if err != nil {
+		return errors.Wrap(err, "failed to get auth token")
+	}
+	req, err := http.NewRequest("GET", cu.Links["self"].Href+"/funding-sources", nil)
+	if err != nil {
+		return errors.Wrap(err, "error creating the request")
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
+	req.Header.Add("Conetent-Type", "application/vnd.dwolla.v1.hal+json")
+	res, err := hc.Do(req)
+	if err != nil {
+		return errors.Wrap(err, "failed to make request to dwolla api")
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 200:
+		return nil
+	case 403:
+		return errors.New("not authorized to retrieve the customer")
+	case 404:
+		return errors.New("account not found")
+	default:
+		return errors.New(res.Status)
 	}
 }

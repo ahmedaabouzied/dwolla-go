@@ -15,6 +15,7 @@ type Resource struct {
 	Type            string                 `json:"type"`
 	CreatedAt       string                 `json:"created"`
 	Removed         bool                   `json:"removed"`
+	PlaidToken 		string				   `json:"plaidToken"`
 	Channels        []string               `json:"channels"`
 	Links           map[string]client.Link `json:"_links"`
 }
@@ -25,3 +26,4 @@ type ListResourcesResponse struct {
 	Links   map[string]client.Link `json:"_links"`
 	Embeded map[string][]Resource  `json:"_embedded"`
 }
+

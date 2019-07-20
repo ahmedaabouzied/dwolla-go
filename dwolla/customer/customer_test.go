@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/ahmedaabouzied/dwolla-go/dwolla/client"
+	"github.com/ahmedaabouzied/dwolla-go/dwolla/funding"
 	"github.com/subosito/gotenv"
 )
 
@@ -143,5 +144,31 @@ func TestGetDocument(t *testing.T) {
 			t.Error(err)
 		}
 		t.Log(document.ID)
+	}
+}
+
+func TestCreateFundingSource(t *testing.T) {
+	gotenv.Load("../../.env")
+	client, err := client.CreateClient("sandbox", os.Getenv("DWOLLA_PUBLIC_KEY"), os.Getenv("DWOLLA_SECRET_KEY"))
+	if err != nil {
+		t.Error(err)
+	}
+	customers, err := List(client)
+	if err != nil {
+		t.Error(err)
+	}
+	customer, err := GetCustomer(client, customers[0].ID)
+	if err != nil {
+		t.Error(err)
+	}
+	fr := &funding.Resource{
+		RoutingNumber:   "222222226",
+		AccountNumber:   "123456789",
+		BankAccountType: "checking",
+		Name:            "Jane Doe's checking",
+	}
+	err = customer.CreateFundingResource(client, fr)
+	if err != nil {
+		t.Error(err)
 	}
 }
