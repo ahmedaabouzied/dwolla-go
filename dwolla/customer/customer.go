@@ -381,3 +381,35 @@ func (cu *Customer) CreateFundingSourceToken(c *client.Client) (string, error) {
 		return "", errors.New(res.Status)
 	}
 }
+
+// CreateIAVFundingSourceToken creates a token to add and verify
+func (cu *Customer) CreateIAVFundingSourceToken(c *client.Client) (string, error) {
+	hc := &http.Client{}
+	token, err := c.AuthToken()
+	if err != nil {
+		return "", errors.Wrap(err, "failed to get auth token")
+	}
+	req, err := http.NewRequest("POST", cu.Links["self"].Href+"/iav-token", nil)
+	if err != nil {
+		return "", errors.Wrap(err, "error creating the request")
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
+	req.Header.Add("Conetent-Type", "application/vnd.dwolla.v1.hal+json")
+	res, err := hc.Do(req)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to make request to dwolla api")
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 200:
+		d := json.NewDecoder(res.Body)
+		body := &createFudingSourceToken{}
+		err = d.Decode(body)
+		return body.Token, nil
+	case 404:
+		return "", errors.New("customer not found")
+	default:
+		return "", errors.New(res.Status)
+	}
+}
