@@ -2,6 +2,7 @@
 package funding
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 
@@ -61,5 +62,70 @@ func GetFundingSource(c *client.Client, sourceID string) (*Resource, error) {
 		return nil, errors.New("customer not found")
 	default:
 		return nil, errors.New(res.Status)
+	}
+}
+
+// Update a funding source.
+func (f *Resource) Update(c *client.Client) error {
+	hc := &http.Client{}
+	token, err := c.AuthToken()
+	if err != nil {
+		return errors.Wrap(err, "failed to get auth token")
+	}
+	body, err := json.Marshal(f)
+	if err != nil {
+		return errors.Wrap(err, "error marshalling json body for request")
+	}
+	req, err := http.NewRequest("POST", c.RootURL()+"/funding-sources/"+f.ID, bytes.NewReader(body))
+	if err != nil {
+		return errors.Wrap(err, "error creating the request")
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
+	res, err := hc.Do(req)
+	if err != nil {
+		return errors.Wrap(err, "failed to make request to dwolla api")
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 200:
+		return nil
+	case 404:
+		return errors.New("funding source not found")
+	case 400:
+		return errors.New("only funding sources of type bank can be updated")
+	case 403:
+		return errors.New("a removed bank account cannot be updated")
+	default:
+		return errors.New(res.Status)
+	}
+}
+
+// IntiateMicroDeposits for bank account verification.
+func (f *Resource) IntiateMicroDeposits(c *client.Client) error {
+	hc := &http.Client{}
+	token, err := c.AuthToken()
+	if err != nil {
+		return errors.Wrap(err, "failed to get auth token")
+	}
+	req, err := http.NewRequest("POST", f.Links["self"].Href+"/micro-deposits", nil)
+	if err != nil {
+		return errors.Wrap(err, "error creating the request")
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
+	req.Header.Add("Content-Type", "application/vnd.dwolla.v1.hal+json")
+	res, err := hc.Do(req)
+	if err != nil {
+		return errors.Wrap(err, "failed to make request to dwolla api")
+	}
+	defer res.Body.Close()
+	switch res.StatusCode {
+	case 201:
+		return nil
+	case 404:
+		return errors.New("funding source not found")
+	default:
+		return errors.New(res.Status)
 	}
 }
