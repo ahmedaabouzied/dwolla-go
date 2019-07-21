@@ -5,3 +5,4 @@ go:
 
 os:
   - linux
+script: build.sh
