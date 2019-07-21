@@ -116,6 +116,9 @@ func List(c *client.Client) ([]Customer, error) {
 		d := json.NewDecoder(res.Body)
 		body := &listCustomersResponse{}
 		err = d.Decode(body)
+		for _, customer := range body.Embedded["customers"] {
+			customer.Client = c
+		}
 		return body.Embedded["customers"], nil
 	case 403:
 		return nil, errors.New("not authorized to list customers")
@@ -149,6 +152,7 @@ func GetCustomer(c *client.Client, customerID string) (*Customer, error) {
 		d := json.NewDecoder(res.Body)
 		body := &Customer{}
 		err = d.Decode(body)
+		body.Client = c
 		return body, nil
 	case 403:
 		return nil, errors.New("not authorized to retrieve the customer")
