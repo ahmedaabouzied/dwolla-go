@@ -12,13 +12,6 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	// Sandbox dwolla account type
-	Sandbox string = "sandbox"
-	// Production dwolla account type
-	Production string = "production"
-)
-
 // Client represents a client for the dwolla REST API.
 type Client struct {
 	Env          string                       // either sandbox or production
@@ -44,9 +37,9 @@ func CreateClient(env string, clientID string, clientSecret string) (*Client, er
 		ClientSecret: clientSecret,
 	}
 	switch env {
-	case Sandbox:
+	case "sandbox":
 		c.setRootURL("https://api-sandbox.dwolla.com")
-	case Production:
+	case "production":
 		c.setRootURL("https://api.dwolla.com")
 	default:
 		c.setRootURL("https://api-sandbox.dwolla.com")

@@ -67,7 +67,7 @@ func TestUpdate(t *testing.T) {
 		t.Error(err)
 	}
 	customer.LastName = "Doe"
-	err = customer.Update(client)
+	err = customer.Update()
 	if err != nil {
 		t.Error(err)
 	}
@@ -113,7 +113,7 @@ func TestListDocuments(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	documnets, err := customer.ListDocuments(client)
+	documnets, err := customer.ListDocuments()
 	if err != nil {
 		t.Error(err)
 	}
@@ -134,7 +134,7 @@ func TestGetDocument(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	documents, err := customer.ListDocuments(client)
+	documents, err := customer.ListDocuments()
 	if err != nil {
 		t.Error(err)
 	}
@@ -167,7 +167,7 @@ func TestCreateFundingSource(t *testing.T) {
 		BankAccountType: "checking",
 		Name:            "Jane Doe's checking",
 	}
-	err = customer.CreateFundingSource(client, fr)
+	err = customer.CreateFundingSource(fr)
 	if err != nil {
 		t.Error(err)
 	}
@@ -187,7 +187,7 @@ func TestCreateFundingSourceToken(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	token, err := customer.CreateFundingSourceToken(client)
+	token, err := customer.CreateFundingSourceToken()
 	if err != nil {
 		t.Error(err)
 	}
@@ -207,7 +207,7 @@ func TestCreateIAVFundingSourceToken(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	token, err := customer.CreateIAVFundingSourceToken(client)
+	token, err := customer.CreateIAVFundingSourceToken()
 	if err != nil {
 		t.Error(err)
 	}
@@ -227,7 +227,7 @@ func TestListFundingSources(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	sources, err := customer.ListFundingSources(client)
+	sources, err := customer.ListFundingSources()
 	if err != nil {
 		t.Error(err)
 	}

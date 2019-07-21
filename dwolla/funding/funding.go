@@ -12,6 +12,7 @@ import (
 
 // Resource represents a bank account connected to dwolla account.
 type Resource struct {
+	Client          *client.Client
 	ID              string                 `json:"id"`
 	Status          string                 `json:"status"`
 	AccountNumber   string                 `json:"accountNumber"`
@@ -93,7 +94,8 @@ func GetFundingSource(c *client.Client, sourceID string) (*Resource, error) {
 }
 
 // Update a funding source.
-func (f *Resource) Update(c *client.Client) error {
+func (f *Resource) Update() error {
+	var c = f.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -130,7 +132,8 @@ func (f *Resource) Update(c *client.Client) error {
 }
 
 // IntiateMicroDeposits for bank account verification.
-func (f *Resource) IntiateMicroDeposits(c *client.Client) error {
+func (f *Resource) IntiateMicroDeposits() error {
+	var c = f.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -159,7 +162,8 @@ func (f *Resource) IntiateMicroDeposits(c *client.Client) error {
 }
 
 // VerifyMicroDeposits bank verification.
-func (f *Resource) VerifyMicroDeposits(c *client.Client, vr *VerifyMicroDepositsRequest) error {
+func (f *Resource) VerifyMicroDeposits(vr *VerifyMicroDepositsRequest) error {
+	var c = f.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -198,7 +202,8 @@ func (f *Resource) VerifyMicroDeposits(c *client.Client, vr *VerifyMicroDeposits
 }
 
 // GetBalance retrieves balance for the funding source.
-func (f *Resource) GetBalance(c *client.Client) (*BalanceResponse, error) {
+func (f *Resource) GetBalance() (*BalanceResponse, error) {
+	var c = f.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -230,7 +235,8 @@ func (f *Resource) GetBalance(c *client.Client) (*BalanceResponse, error) {
 
 // GetMicroDepositsDetails retrieves the status of micro-deposits
 // and checks if they are eligible for verification.
-func (f *Resource) GetMicroDepositsDetails(c *client.Client) (*MicroDepositsDetails, error) {
+func (f *Resource) GetMicroDepositsDetails() (*MicroDepositsDetails, error) {
+	var c = f.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -261,9 +267,9 @@ func (f *Resource) GetMicroDepositsDetails(c *client.Client) (*MicroDepositsDeta
 }
 
 // Remove a funding resource.
-func (f *Resource) Remove(c *client.Client) error {
+func (f *Resource) Remove() error {
 	f.Removed = true
-	err := f.Update(c)
+	err := f.Update()
 	if err != nil {
 		return errors.Wrap(err, "error removing funding source")
 	}

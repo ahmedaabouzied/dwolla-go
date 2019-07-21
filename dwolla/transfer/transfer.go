@@ -13,6 +13,7 @@ import (
 
 // Transfer has the fields to make a transfer between two funding sources.
 type Transfer struct {
+	Client        *client.Client
 	Links         map[string]client.Link `json:"_links"`
 	Amount        *funding.Amount        `json:"amount"`
 	Metadata      map[string]string      `json:"metadata"`
@@ -95,7 +96,11 @@ func GetTransfer(c *client.Client, transferID string) (*Transfer, error) {
 	defer res.Body.Close()
 	switch res.StatusCode {
 	case 201:
-		return nil, nil
+		d := json.NewDecoder(res.Body)
+		body := &Transfer{}
+		err = d.Decode(body)
+		body.Client = c
+		return body, nil
 	case 404:
 		return nil, errors.New("transfer not found")
 	default:
@@ -104,7 +109,8 @@ func GetTransfer(c *client.Client, transferID string) (*Transfer, error) {
 }
 
 // ListFees retrieves a list of the fees of the transfer
-func (t *Transfer) ListFees(c *client.Client) (*Transfer, error) {
+func (t *Transfer) ListFees() (*Transfer, error) {
+	var c = t.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -135,7 +141,8 @@ func (t *Transfer) ListFees(c *client.Client) (*Transfer, error) {
 }
 
 // Failure retrieves the failure reassons of a transfer.
-func (t *Transfer) Failure(c *client.Client) (*map[string]string, error) {
+func (t *Transfer) Failure() (*map[string]string, error) {
+	var c = t.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -166,7 +173,8 @@ func (t *Transfer) Failure(c *client.Client) (*map[string]string, error) {
 }
 
 // Cancel a transfer.
-func (t *Transfer) Cancel(c *client.Client) (*Transfer, error) {
+func (t *Transfer) Cancel() (*Transfer, error) {
+	var c = t.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {

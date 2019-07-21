@@ -17,6 +17,7 @@ import (
 
 // Customer represents an individual or business with whom you intend to transact with
 type Customer struct {
+	Client       *client.Client
 	ID           string                 `json:"id"`
 	FirstName    string                 `json:"firstName"`
 	LastName     string                 `json:"lastName"`
@@ -31,6 +32,7 @@ type Customer struct {
 
 // Document is a file sumbitted to dwolla to be validated
 type Document struct {
+	Client    *client.Client
 	Links     map[string]client.Link `json:"_links"`
 	ID        string                 `json:"id"`
 	Status    string                 `json:"status"`
@@ -160,7 +162,8 @@ func GetCustomer(c *client.Client, customerID string) (*Customer, error) {
 // suspend a Customer, deactivate a Customer,
 // reactivate a Customer,
 // and update a verified Customer’s information to retry verification.
-func (cu *Customer) Update(c *client.Client) error {
+func (cu *Customer) Update() error {
+	var c = cu.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -200,7 +203,8 @@ func (cu *Customer) Update(c *client.Client) error {
 // TODO : Add RetrieveBusinessClassification Method
 
 // AddDocument uploads a document to a customer for verification
-func (cu *Customer) AddDocument(c *client.Client, file *os.File, documentType string) error {
+func (cu *Customer) AddDocument(file *os.File, documentType string) error {
+	var c = cu.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -251,7 +255,8 @@ func (cu *Customer) AddDocument(c *client.Client, file *os.File, documentType st
 }
 
 // ListDocuments retrieves documents submitted to be validated for this customer
-func (cu *Customer) ListDocuments(c *client.Client) ([]Document, error) {
+func (cu *Customer) ListDocuments() ([]Document, error) {
+	var c = cu.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -321,7 +326,8 @@ func GetDocument(c *client.Client, docuemntID string) (*Document, error) {
 }
 
 // CreateFundingSource creates a funding source for a customer
-func (cu *Customer) CreateFundingSource(c *client.Client, f *funding.Resource) error {
+func (cu *Customer) CreateFundingSource(f *funding.Resource) error {
+	var c = cu.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -352,7 +358,8 @@ func (cu *Customer) CreateFundingSource(c *client.Client, f *funding.Resource) e
 }
 
 // CreateFundingSourceToken creates a new funding source from a token via dwolla.js
-func (cu *Customer) CreateFundingSourceToken(c *client.Client) (string, error) {
+func (cu *Customer) CreateFundingSourceToken() (string, error) {
+	var c = cu.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -384,7 +391,8 @@ func (cu *Customer) CreateFundingSourceToken(c *client.Client) (string, error) {
 }
 
 // CreateIAVFundingSourceToken creates a token to add and verify
-func (cu *Customer) CreateIAVFundingSourceToken(c *client.Client) (string, error) {
+func (cu *Customer) CreateIAVFundingSourceToken() (string, error) {
+	var c = cu.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -416,7 +424,8 @@ func (cu *Customer) CreateIAVFundingSourceToken(c *client.Client) (string, error
 }
 
 // ListFundingSources retrieves funding sources that belong to the customer.
-func (cu *Customer) ListFundingSources(c *client.Client) ([]funding.Resource, error) {
+func (cu *Customer) ListFundingSources() ([]funding.Resource, error) {
+	var c = cu.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -439,6 +448,9 @@ func (cu *Customer) ListFundingSources(c *client.Client) ([]funding.Resource, er
 		d := json.NewDecoder(res.Body)
 		body := &funding.ListResourcesResponse{}
 		err = d.Decode(body)
+		for _, source := range body.Embedded["funding-source"] {
+			source.Client = cu.Client
+		}
 		return body.Embedded["funding-sources"], nil
 	case 403:
 		return nil, errors.New("not authorized to list funding sources")
@@ -450,7 +462,8 @@ func (cu *Customer) ListFundingSources(c *client.Client) ([]funding.Resource, er
 }
 
 // ListTransfers retrieves the customer's list of transfers.
-func (cu *Customer) ListTransfers(c *client.Client) ([]transfer.Transfer, error) {
+func (cu *Customer) ListTransfers() ([]transfer.Transfer, error) {
+	var c = cu.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {

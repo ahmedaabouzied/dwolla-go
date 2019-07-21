@@ -14,9 +14,10 @@ import (
 
 // Account represents a Dwolla master account that was estabslished on dwolla.com
 type Account struct {
-	Links map[string]map[string]string `json:"_links"`
-	ID    string                       `json:"id"`   // Dwolla account ID
-	Name  string                       `json:"name"` // Dwolla account holder name
+	client *client.Client
+	Links  map[string]map[string]string `json:"_links"`
+	ID     string                       `json:"id"`   // Dwolla account ID
+	Name   string                       `json:"name"` // Dwolla account holder name
 }
 
 // RetrieveAccount returns the Dwolla master account
@@ -46,11 +47,13 @@ func RetrieveAccount(c *client.Client) (*Account, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse json response")
 	}
+	acc.client = c
 	return acc, nil
 }
 
 // CreateFundingSource adds a funding resource to the master dwolla account
-func (a *Account) CreateFundingSource(c *client.Client, fundingResource *funding.Resource) error {
+func (a *Account) CreateFundingSource(fundingResource *funding.Resource) error {
+	var c = a.client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -86,7 +89,8 @@ func (a *Account) CreateFundingSource(c *client.Client, fundingResource *funding
 }
 
 // ListFundingResources retrieves a list of funding sources that belong to an Account
-func (a *Account) ListFundingResources(c *client.Client) ([]funding.Resource, error) {
+func (a *Account) ListFundingResources() ([]funding.Resource, error) {
+	var c = a.client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -121,7 +125,8 @@ func (a *Account) ListFundingResources(c *client.Client) ([]funding.Resource, er
 // TODO : Add ListAndSearchTransfers method
 
 // ListMassPayments retrieves an Account’s list of previously created mass payments
-func (a *Account) ListMassPayments(c *client.Client) ([]masspayment.MassPayment, error) {
+func (a *Account) ListMassPayments() ([]masspayment.MassPayment, error) {
+	var c = a.client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {

@@ -39,7 +39,7 @@ func TestCreateFundingSource(t *testing.T) {
 		AccountNumber:   "123456789",
 		BankAccountType: "checking",
 	}
-	err = account.CreateFundingSource(client, fundingSource)
+	err = account.CreateFundingSource(fundingSource)
 	if err != nil {
 		t.Error(err)
 	}
@@ -55,7 +55,7 @@ func TestListFundingSources(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	sources, err := account.ListFundingResources(client)
+	sources, err := account.ListFundingResources()
 	if err != nil {
 		t.Error(err)
 	}
@@ -72,7 +72,7 @@ func TestListMassPayments(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	_, err = account.ListMassPayments(client)
+	_, err = account.ListMassPayments()
 	if err != nil {
 		t.Error(err)
 	}

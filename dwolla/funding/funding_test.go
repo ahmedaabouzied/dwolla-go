@@ -32,7 +32,7 @@ func TestUpdateFundingSource(t *testing.T) {
 		t.Error(err)
 	}
 	source.Name = "Bank of Brgle"
-	err = source.Update(client)
+	err = source.Update()
 	if err != nil {
 		t.Error(err)
 	}
@@ -48,7 +48,7 @@ func TestInitiateMicroDeposits(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = source.IntiateMicroDeposits(client)
+	err = source.IntiateMicroDeposits()
 	if err != nil {
 		t.Error(err)
 	}
@@ -74,7 +74,7 @@ func TestVerifyMicroDeposits(t *testing.T) {
 			Currency: "USD",
 		},
 	}
-	err = source.VerifyMicroDeposits(client, vr)
+	err = source.VerifyMicroDeposits(vr)
 	if err != nil {
 		t.Error(err)
 	}
@@ -90,7 +90,7 @@ func TestGetBalance(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	_, err = source.GetBalance(client)
+	_, err = source.GetBalance()
 	if err != nil {
 		t.Error(err)
 	}
@@ -105,7 +105,7 @@ func TestGetMicroDepositsDetails(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	_, err = source.GetMicroDepositsDetails(client)
+	_, err = source.GetMicroDepositsDetails()
 	if err != nil {
 		t.Error(err)
 	}
@@ -121,7 +121,7 @@ func TestRemove(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	err = source.Remove(client)
+	err = source.Remove()
 	if err != nil {
 		t.Error(err)
 	}
