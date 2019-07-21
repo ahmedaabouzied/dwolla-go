@@ -15,11 +15,12 @@ func TestCreate(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	customer := &Customer{FirstName: "Jane", LastName: "Merchant", Email: "jmerchante@nomail.com", Type: "receive-only", BusinessName: "Jane corp llc", IPAddress: "99.99.99.99"}
-	err = Create(client, customer)
+	customer := &Customer{FirstName: "Jane", LastName: "Merchant", Email: "jmerchantere@nomailer.com", Type: "receive-only", BusinessName: "Jane corp llc", IPAddress: "99.99.99.99"}
+	id, err := Create(client, customer)
 	if err != nil {
 		t.Error(err)
 	}
+	t.Log(id)
 }
 
 func TestList(t *testing.T) {

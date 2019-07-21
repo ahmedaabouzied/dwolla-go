@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/ahmedaabouzied/dwolla-go/dwolla/client"
 	"github.com/ahmedaabouzied/dwolla-go/dwolla/funding"
@@ -56,37 +57,39 @@ type createFudingSourceToken struct {
 }
 
 // Create a new customer
-func Create(c *client.Client, cu *Customer) error {
+func Create(c *client.Client, cu *Customer) (string, error) {
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
-		return errors.Wrap(err, "failed to get auth token")
+		return "", errors.Wrap(err, "failed to get auth token")
 	}
 	body, err := json.Marshal(cu)
 	if err != nil {
-		return errors.Wrap(err, "error marshalling customer into req body")
+		return "", errors.Wrap(err, "error marshalling customer into req body")
 	}
 	req, err := http.NewRequest("POST", c.Links["customers"]["href"], bytes.NewReader(body))
 	if err != nil {
-		return errors.Wrap(err, "error creating the request")
+		return "", errors.Wrap(err, "error creating the request")
 	}
 	req.Header.Add("Authorization", "Bearer "+token)
 	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
 	req.Header.Add("Content-Type", "application/vnd.dwolla.v1.hal+json")
 	res, err := hc.Do(req)
 	if err != nil {
-		return errors.Wrap(err, "failed to make request to dwolla api")
+		return "", errors.Wrap(err, "failed to make request to dwolla api")
 	}
 	defer res.Body.Close()
 	switch res.StatusCode {
 	case 201:
-		return nil
+		return strings.TrimLeft(res.Header.Get("Location"), c.RootURL()+"/customer/"), nil
 	case 403:
-		return errors.New("not authorized to create customers")
+		return "", errors.New("not authorized to create customers")
+	case 400:
+		return "", errors.New("duplicate customer or validation error")
 	case 404:
-		return errors.New("account not found")
+		return "", errors.New("account not found")
 	default:
-		return errors.New(res.Status)
+		return "", errors.New(res.Status)
 	}
 }
 

@@ -41,7 +41,7 @@ func (c *Client) RetrieveAccount() (*account.Account, error) {
 }
 
 // CreateCustomer creates a new customer.
-func (c *Client) CreateCustomer(cu *customer.Customer) error {
+func (c *Client) CreateCustomer(cu *customer.Customer) (string, error) {
 	return customer.Create(c.client, cu)
 }
 
