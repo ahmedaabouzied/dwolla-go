@@ -5,4 +5,6 @@ go:
 
 os:
   - linux
-script: build.sh
+
+before_install:
+  - cd dwolla
