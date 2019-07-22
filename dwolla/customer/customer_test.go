@@ -164,7 +164,7 @@ func TestCreateFundingSource(t *testing.T) {
 	}
 	fr := &funding.Resource{
 		RoutingNumber:   "222222226",
-		AccountNumber:   "123456789",
+		AccountNumber:   "123456786",
 		BankAccountType: "checking",
 		Name:            "Jane Doe's checking",
 	}

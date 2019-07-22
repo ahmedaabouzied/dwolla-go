@@ -340,13 +340,17 @@ func (cu *Customer) CreateFundingSource(f *funding.Resource) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("POST", cu.Links["self"].Href+"/funding-sources", nil)
+	body, err := json.Marshal(f)
+	if err != nil {
+		return errors.Wrap(err, "error marshalling customer into req body")
+	}
+	req, err := http.NewRequest("POST", cu.Links["self"].Href+"/funding-sources", bytes.NewReader(body))
 	if err != nil {
 		return errors.Wrap(err, "error creating the request")
 	}
 	req.Header.Add("Authorization", "Bearer "+token)
 	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
-	req.Header.Add("Conetent-Type", "application/vnd.dwolla.v1.hal+json")
+	req.Header.Add("Content-Type", "application/vnd.dwolla.v1.hal+json")
 	res, err := hc.Do(req)
 	if err != nil {
 		return errors.Wrap(err, "failed to make request to dwolla api")
@@ -372,13 +376,14 @@ func (cu *Customer) CreateFundingSourceToken() (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "failed to get auth token")
 	}
+
 	req, err := http.NewRequest("POST", cu.Links["self"].Href+"/funding-sources-token", nil)
 	if err != nil {
 		return "", errors.Wrap(err, "error creating the request")
 	}
 	req.Header.Add("Authorization", "Bearer "+token)
 	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
-	req.Header.Add("Conetent-Type", "application/vnd.dwolla.v1.hal+json")
+	req.Header.Add("Content-Type", "application/vnd.dwolla.v1.hal+json")
 	res, err := hc.Do(req)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to make request to dwolla api")
