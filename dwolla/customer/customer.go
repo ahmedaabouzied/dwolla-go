@@ -81,7 +81,7 @@ func Create(c *client.Client, cu *Customer) (string, error) {
 	defer res.Body.Close()
 	switch res.StatusCode {
 	case 201:
-		return strings.TrimLeft(res.Header.Get("Location"), c.RootURL()+"/customer/"), nil
+		return strings.TrimPrefix(res.Header.Get("Location"), c.RootURL()+"/customer/"), nil
 	case 403:
 		return "", errors.New("not authorized to create customers")
 	case 400:
