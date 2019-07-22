@@ -85,6 +85,7 @@ func GetFundingSource(c *client.Client, sourceID string) (*Resource, error) {
 		d := json.NewDecoder(res.Body)
 		body := &Resource{}
 		err = d.Decode(body)
+		body.Client = c
 		return body, nil
 	case 404:
 		return nil, errors.New("customer not found")

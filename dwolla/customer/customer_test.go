@@ -15,7 +15,7 @@ func TestCreate(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	customer := &Customer{FirstName: "Jane", LastName: "Merchant", Email: "jmerchantere@nomailer.com", Type: "receive-only", BusinessName: "Jane corp llc", IPAddress: "99.99.99.99"}
+	customer := &Customer{FirstName: "Jane", LastName: "Merchant", Email: "jmerchantere13@nomailer.com", Type: "receive-only", BusinessName: "Jane corp llc", IPAddress: "99.99.99.99"}
 	id, err := Create(client, customer)
 	if err != nil {
 		t.Error(err)
