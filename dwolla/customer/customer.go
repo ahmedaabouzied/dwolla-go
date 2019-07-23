@@ -30,7 +30,9 @@ type Customer struct {
 	CreatedAt    string                 `json:"created"`
 	DateOfBirth  string                 `json:"dateOfBirth,omitempty"`
 	SSN          string                 `json:"ssn,omitempty"`
-	Address      string                 `json:"address,omitempty"`
+	PostalCode   string                 `json:"postalCode"`
+	City         string                 `json:"city"`
+	Address      string                 `json:"address1,omitempty"`
 	Passport     string                 `json:"passport,omitempty"`
 	Links        map[string]client.Link `json:"_links"`
 }
