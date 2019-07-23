@@ -4,6 +4,7 @@ package transfer
 import (
 	"bytes"
 	"io"
+	"os"
 	"encoding/json"
 	"net/http"
 
