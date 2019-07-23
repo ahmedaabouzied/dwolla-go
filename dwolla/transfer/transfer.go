@@ -3,6 +3,7 @@ package transfer
 
 import (
 	"bytes"
+	"io"
 	"encoding/json"
 	"net/http"
 
@@ -66,6 +67,7 @@ func CreateTransfer(c *client.Client, transfer *Transfer) error {
 	case 401:
 		return errors.New("invalid access token")
 	case 400:
+		io.Copy(os.Stdout,res.Body)
 		return errors.New(res.Status)
 	case 403:
 		return errors.New("Not authorized to create a transfer")
