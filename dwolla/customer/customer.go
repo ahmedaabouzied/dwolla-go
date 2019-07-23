@@ -25,7 +25,7 @@ type Customer struct {
 	Email        string                 `json:"email"`
 	Type         string                 `json:"type"`
 	Status       string                 `json:"status"`
-	BusinessName string                 `json:"businessName"`
+	BusinessName string                 `json:"businessName,omitempty"`
 	IPAddress    string                 `json:"ipAddress"`
 	CreatedAt    string                 `json:"created"`
 	DateOfBirth  string                 `json:"dateOfBirth,omitempty"`
