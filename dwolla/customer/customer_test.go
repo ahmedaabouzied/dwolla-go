@@ -59,15 +59,18 @@ func TestUpdate(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	customers, err := List(client)
+	// customers, err := List(client)
+	// if err != nil {
+	// 	t.Error(err)
+	// }
+	customer, err := GetCustomer(client, "5a6e196b-4497-4c25-b01c-9f3173328451")
 	if err != nil {
 		t.Error(err)
 	}
-	customer, err := GetCustomer(client, customers[0].ID)
-	if err != nil {
-		t.Error(err)
-	}
-	customer.LastName = "Doe"
+	customer.SSN = "1234"
+	customer.Address = "12 baker street , london"
+	customer.LastName = "Tester"
+	customer.Status = "verified"
 	err = customer.Update()
 	if err != nil {
 		t.Error(err)

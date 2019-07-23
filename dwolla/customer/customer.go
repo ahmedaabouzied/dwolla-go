@@ -28,6 +28,10 @@ type Customer struct {
 	BusinessName string                 `json:"businessName"`
 	IPAddress    string                 `json:"ipAddress"`
 	CreatedAt    string                 `json:"created"`
+	DateOfBirth  string                 `json:"dateOfBirth,omitempty"`
+	SSN          string                 `json:"ssn,omitempty"`
+	Address      string                 `json:"address,omitempty"`
+	Passport     string                 `json:"passport,omitempty"`
 	Links        map[string]client.Link `json:"_links"`
 }
 
@@ -85,6 +89,7 @@ func Create(c *client.Client, cu *Customer) (string, error) {
 	case 403:
 		return "", errors.New("not authorized to create customers")
 	case 400:
+		io.Copy(os.Stdout,res.Body)
 		return "", errors.New("duplicate customer or validation error")
 	case 404:
 		return "", errors.New("account not found")
