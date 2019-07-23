@@ -30,6 +30,7 @@ type Customer struct {
 	CreatedAt    string                 `json:"created"`
 	DateOfBirth  string                 `json:"dateOfBirth,omitempty"`
 	SSN          string                 `json:"ssn,omitempty"`
+	State 		 string                 `json:"state"`
 	PostalCode   string                 `json:"postalCode"`
 	City         string                 `json:"city"`
 	Address      string                 `json:"address1,omitempty"`
