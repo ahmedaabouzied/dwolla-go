@@ -9,7 +9,7 @@ import (
 	"github.com/ahmedaabouzied/dwolla-go/dwolla/funding"
 )
 
-var mockAccount string = `{
+var mockAccount = `{
   "_links": {
     "self": {
       "href": "https://api-sandbox.dwolla.com/accounts/ca32853c-48fa-40be-ae75-77b37504581b"
@@ -34,7 +34,7 @@ var mockAccount string = `{
   "name": "Jane Doe"
 }`
 
-var mockFundingSources string = `
+var mockFundingSources = `
 {
     "_links": {
         "self": {
@@ -97,7 +97,7 @@ var mockFundingSources string = `
 }
 `
 
-var mockMassPayments string = `
+var mockMassPayments = `
 {
   "_links": {
     "self": {
