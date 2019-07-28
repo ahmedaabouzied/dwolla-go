@@ -14,7 +14,7 @@ import (
 
 // Account represents a Dwolla master account that was estabslished on dwolla.com
 type Account struct {
-	client *client.Client
+	Client *client.Client
 	Links  map[string]map[string]string `json:"_links"`
 	ID     string                       `json:"id"`   // Dwolla account ID
 	Name   string                       `json:"name"` // Dwolla account holder name
@@ -53,7 +53,7 @@ func RetrieveAccount(c *client.Client) (*Account, error) {
 
 // CreateFundingSource adds a funding resource to the master dwolla account
 func (a *Account) CreateFundingSource(fundingResource *funding.Resource) error {
-	var c = a.client
+	var c = a.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -90,7 +90,7 @@ func (a *Account) CreateFundingSource(fundingResource *funding.Resource) error {
 
 // ListFundingResources retrieves a list of funding sources that belong to an Account
 func (a *Account) ListFundingResources() ([]funding.Resource, error) {
-	var c = a.client
+	var c = a.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -126,7 +126,7 @@ func (a *Account) ListFundingResources() ([]funding.Resource, error) {
 
 // ListMassPayments retrieves an Account’s list of previously created mass payments
 func (a *Account) ListMassPayments() ([]masspayment.MassPayment, error) {
-	var c = a.client
+	var c = a.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
