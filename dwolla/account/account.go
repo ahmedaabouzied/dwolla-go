@@ -47,7 +47,7 @@ func RetrieveAccount(c *client.Client) (*Account, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse json response")
 	}
-	acc.client = c
+	acc.Client = c
 	return acc, nil
 }
 
