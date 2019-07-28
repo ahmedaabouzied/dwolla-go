@@ -12,6 +12,16 @@ import (
 	"github.com/pkg/errors"
 )
 
+// DwollaClient is the client interface.
+type DwollaClient interface {
+	SetRootURL(URL string)
+	RootURL() string
+	Root() (map[string]map[string]string, error)
+	AuthToken() (string, error)
+	SetAccessToken() error
+	Links() map[string]map[string]string
+}
+
 // Client represents a client for the dwolla REST API.
 type Client struct {
 	Env          string                       // either sandbox or production
@@ -19,7 +29,7 @@ type Client struct {
 	ClientSecret string                       // Dwolla Client Secret
 	authToken    string                       // Dowlla Auth token that expires in 1 hour
 	rootURL      string                       // Root url of dwolla api. Differs according to Env
-	Links        map[string]map[string]string // Links to account resources
+	links        map[string]map[string]string // Links to account resources
 }
 
 // Link represents URL to and endpoint in dwolla api
@@ -30,7 +40,7 @@ type Link struct {
 }
 
 // CreateClient creates a new Dwolla Client
-func CreateClient(env string, clientID string, clientSecret string) (*Client, error) {
+func CreateClient(env string, clientID string, clientSecret string) (DwollaClient, error) {
 	c := &Client{
 		Env:          env,
 		ClientID:     clientID,
@@ -38,11 +48,11 @@ func CreateClient(env string, clientID string, clientSecret string) (*Client, er
 	}
 	switch env {
 	case "sandbox":
-		c.setRootURL("https://api-sandbox.dwolla.com")
+		c.SetRootURL("https://api-sandbox.dwolla.com")
 	case "production":
-		c.setRootURL("https://api.dwolla.com")
+		c.SetRootURL("https://api.dwolla.com")
 	default:
-		c.setRootURL("https://api-sandbox.dwolla.com")
+		c.SetRootURL("https://api-sandbox.dwolla.com")
 	}
 	_, err := c.Root()
 	if err != nil {
@@ -52,7 +62,7 @@ func CreateClient(env string, clientID string, clientSecret string) (*Client, er
 }
 
 // SetRootURL sets the rootURL of the client to the given value
-func (c *Client) setRootURL(URL string) {
+func (c *Client) SetRootURL(URL string) {
 	c.rootURL = URL
 }
 
@@ -63,7 +73,7 @@ func (c *Client) RootURL() string {
 
 // AuthToken returns the current auth token
 func (c *Client) AuthToken() (string, error) {
-	err := c.setAccessToken()
+	err := c.SetAccessToken()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to refresh access token")
 	}
@@ -71,7 +81,7 @@ func (c *Client) AuthToken() (string, error) {
 }
 
 // SetAccessToken makes a request to dwolla to get an access token. Then sets this token into the current client.
-func (c *Client) setAccessToken() error {
+func (c *Client) SetAccessToken() error {
 	hc := &http.Client{}
 	req, err := http.NewRequest("POST", c.RootURL()+"/token", bytes.NewReader([]byte("grant_type=client_credentials")))
 	if err != nil {
@@ -96,6 +106,11 @@ func (c *Client) setAccessToken() error {
 	}
 	c.authToken = token
 	return nil
+}
+
+// Links returns the root links of the client.
+func (c *Client) Links() map[string]map[string]string {
+	return c.links
 }
 
 // Root returns the resources avaliable by dwolla api
@@ -125,8 +140,8 @@ func (c *Client) Root() (map[string]map[string]string, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse json response")
 	}
-	c.Links = resources["_links"]
-	return c.Links, nil
+	c.links = resources["_links"]
+	return c.links, nil
 }
 
 func decodeAuthTokenResp(r io.Reader) (string, error) {

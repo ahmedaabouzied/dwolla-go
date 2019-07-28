@@ -14,20 +14,20 @@ import (
 
 // Account represents a Dwolla master account that was estabslished on dwolla.com
 type Account struct {
-	Client *client.Client
+	Client client.DwollaClient
 	Links  map[string]map[string]string `json:"_links"`
 	ID     string                       `json:"id"`   // Dwolla account ID
 	Name   string                       `json:"name"` // Dwolla account holder name
 }
 
 // RetrieveAccount returns the Dwolla master account
-func RetrieveAccount(c *client.Client) (*Account, error) {
+func RetrieveAccount(c client.DwollaClient) (*Account, error) {
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", c.Links["account"]["href"], nil)
+	req, err := http.NewRequest("GET", c.Links()["account"]["href"], nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating get root request")
 	}
@@ -75,17 +75,16 @@ func (a *Account) CreateFundingSource(fundingResource *funding.Resource) error {
 		return errors.Wrap(err, "failed to make request to dwolla api")
 	}
 	defer res.Body.Close()
-	if res.StatusCode != 201 {
-		switch res.StatusCode {
-		case 400:
-			return errors.Wrap(errors.New("Bad Request"), "duplicate funding resource of validation error")
-		case 403:
-			return errors.Wrap(errors.New("Unauthorized"), "not authorized to create funding resource")
-		default:
-			return errors.New(res.Status)
-		}
+	switch res.StatusCode {
+	case 201:
+		return nil
+	case 400:
+		return errors.Wrap(errors.New("Bad Request"), "duplicate funding resource of validation error")
+	case 403:
+		return errors.Wrap(errors.New("Unauthorized"), "not authorized to create funding resource")
+	default:
+		return errors.New(res.Status)
 	}
-	return nil
 }
 
 // ListFundingResources retrieves a list of funding sources that belong to an Account
@@ -96,7 +95,7 @@ func (a *Account) ListFundingResources() ([]funding.Resource, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", a.Links["funding-sources"]["href"], nil)
+	req, err := http.NewRequest("GET", c.RootURL()+"/funding-sources/", nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating the request")
 	}
@@ -132,7 +131,7 @@ func (a *Account) ListMassPayments() ([]masspayment.MassPayment, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", a.Links["self"]["href"]+"/mass-payments", nil)
+	req, err := http.NewRequest("GET", c.RootURL()+"/mass-payments/", nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating the request")
 	}
