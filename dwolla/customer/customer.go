@@ -30,7 +30,7 @@ type Customer struct {
 	CreatedAt    string                 `json:"created"`
 	DateOfBirth  string                 `json:"dateOfBirth,omitempty"`
 	SSN          string                 `json:"ssn,omitempty"`
-	State 		 string                 `json:"state"`
+	State        string                 `json:"state"`
 	PostalCode   string                 `json:"postalCode"`
 	City         string                 `json:"city"`
 	Address      string                 `json:"address1,omitempty"`
@@ -74,7 +74,7 @@ func Create(c *client.Client, cu *Customer) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "error marshalling customer into req body")
 	}
-	req, err := http.NewRequest("POST", c.Links["customers"]["href"], bytes.NewReader(body))
+	req, err := http.NewRequest("POST", c.RootURL()+"/customers/", bytes.NewReader(body))
 	if err != nil {
 		return "", errors.Wrap(err, "error creating the request")
 	}
@@ -92,7 +92,7 @@ func Create(c *client.Client, cu *Customer) (string, error) {
 	case 403:
 		return "", errors.New("not authorized to create customers")
 	case 400:
-		io.Copy(os.Stdout,res.Body)
+		io.Copy(os.Stdout, res.Body)
 		return "", errors.New("duplicate customer or validation error")
 	case 404:
 		return "", errors.New("account not found")
@@ -108,7 +108,7 @@ func List(c *client.Client) ([]Customer, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", c.Links["customers"]["href"], nil)
+	req, err := http.NewRequest("GET", c.RootURL()+"/customers/", nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating the request")
 	}
@@ -144,7 +144,7 @@ func GetCustomer(c *client.Client, customerID string) (*Customer, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", c.Links["customers"]["href"]+"/"+customerID, nil)
+	req, err := http.NewRequest("GET", c.RootURL()+"/customers/"+customerID, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating the request")
 	}
