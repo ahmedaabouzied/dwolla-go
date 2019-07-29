@@ -174,7 +174,7 @@ func (f *Resource) VerifyMicroDeposits(vr *VerifyMicroDepositsRequest) error {
 	if err != nil {
 		return errors.Wrap(err, "error marshalling verify micro deposits")
 	}
-	req, err := http.NewRequest("POST", c.RootURL()+"/customers/"+f.ID+"/micro-deposits", bytes.NewReader(body))
+	req, err := http.NewRequest("POST", c.RootURL()+"/funding-sources/"+f.ID+"/micro-deposits", bytes.NewReader(body))
 	if err != nil {
 		return errors.Wrap(err, "error creating the request")
 	}
@@ -210,7 +210,7 @@ func (f *Resource) GetBalance() (*BalanceResponse, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", c.RootURL()+"/customers/"+f.ID+"/balance", nil)
+	req, err := http.NewRequest("GET", c.RootURL()+"/funding-sources/"+f.ID+"/balance", nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating the request")
 	}
@@ -246,7 +246,7 @@ func (f *Resource) GetMicroDepositsDetails() (*MicroDepositsDetails, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", c.RootURL()+"/customers/"+f.ID+"/micro-deposits", nil)
+	req, err := http.NewRequest("GET", c.RootURL()+"/funding-sources/"+f.ID+"/micro-deposits", nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating the request")
 	}
