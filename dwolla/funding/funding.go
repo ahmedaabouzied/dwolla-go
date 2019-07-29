@@ -140,7 +140,7 @@ func (f *Resource) IntiateMicroDeposits() error {
 	if err != nil {
 		return errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("POST", c.RootURL()+"/funding-sources"+f.ID+"/micro-deposits", nil)
+	req, err := http.NewRequest("POST", c.RootURL()+"/funding-sources/"+f.ID+"/micro-deposits", nil)
 	if err != nil {
 		return errors.Wrap(err, "error creating the request")
 	}
