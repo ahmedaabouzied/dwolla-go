@@ -49,9 +49,9 @@ type Amount struct {
 
 // BalanceResponse has the fields the describe the balance in a funding source.
 type BalanceResponse struct {
-	Links   map[string]map[string]client.Link `json:"_links"`
-	Total   Amount                            `json:"total"`
-	Balance Amount                            `json:"balance"`
+	Links   map[string]client.Link `json:"_links"`
+	Total   Amount                 `json:"total"`
+	Balance Amount                 `json:"balance"`
 }
 
 // MicroDepositsDetails has the details for a microdeposits and their status.
@@ -140,7 +140,7 @@ func (f *Resource) IntiateMicroDeposits() error {
 	if err != nil {
 		return errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("POST", f.Links["self"].Href+"/micro-deposits", nil)
+	req, err := http.NewRequest("POST", c.RootURL()+"/funding-sources"+f.ID+"/micro-deposits", nil)
 	if err != nil {
 		return errors.Wrap(err, "error creating the request")
 	}
@@ -174,7 +174,7 @@ func (f *Resource) VerifyMicroDeposits(vr *VerifyMicroDepositsRequest) error {
 	if err != nil {
 		return errors.Wrap(err, "error marshalling verify micro deposits")
 	}
-	req, err := http.NewRequest("POST", f.Links["self"].Href+"/micro-deposits", bytes.NewReader(body))
+	req, err := http.NewRequest("POST", c.RootURL()+"/customers/"+f.ID+"/micro-deposits", bytes.NewReader(body))
 	if err != nil {
 		return errors.Wrap(err, "error creating the request")
 	}
@@ -210,7 +210,7 @@ func (f *Resource) GetBalance() (*BalanceResponse, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", f.Links["self"].Href+"/balance", nil)
+	req, err := http.NewRequest("GET", c.RootURL()+"/customers/"+f.ID+"/balance", nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating the request")
 	}
@@ -226,6 +226,9 @@ func (f *Resource) GetBalance() (*BalanceResponse, error) {
 		d := json.NewDecoder(res.Body)
 		body := &BalanceResponse{}
 		err = d.Decode(body)
+		if err != nil {
+			return nil, errors.Wrap(err, "error decoding JSON body")
+		}
 		return body, nil
 	case 404:
 		return nil, errors.New("funding source not found")
@@ -243,7 +246,7 @@ func (f *Resource) GetMicroDepositsDetails() (*MicroDepositsDetails, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", f.Links["self"].Href+"/micro-deposits", nil)
+	req, err := http.NewRequest("GET", c.RootURL()+"/customers/"+f.ID+"/micro-deposits", nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating the request")
 	}
