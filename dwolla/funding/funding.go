@@ -12,7 +12,7 @@ import (
 
 // Resource represents a bank account connected to dwolla account.
 type Resource struct {
-	Client          *client.Client
+	Client          client.DwollaClient
 	ID              string                 `json:"id"`
 	Status          string                 `json:"status"`
 	AccountNumber   string                 `json:"accountNumber"`
@@ -63,7 +63,7 @@ type MicroDepositsDetails struct {
 }
 
 // GetFundingSource retrieves a funding source by id.
-func GetFundingSource(c *client.Client, sourceID string) (*Resource, error) {
+func GetFundingSource(c client.DwollaClient, sourceID string) (*Resource, error) {
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {

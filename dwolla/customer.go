@@ -1,5 +1,4 @@
-// Package customer provides methods to use customers via the dwolla api.
-package customer
+package dwolla
 
 import (
 	"bytes"
@@ -8,54 +7,41 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"strings"
 
-	"github.com/ahmedaabouzied/dwolla-go/dwolla/client"
-	"github.com/ahmedaabouzied/dwolla-go/dwolla/funding"
-	"github.com/ahmedaabouzied/dwolla-go/dwolla/transfer"
 	"github.com/pkg/errors"
 )
 
 // Customer represents an individual or business with whom you intend to transact with
 type Customer struct {
-	Client       client.DwollaClient
-	ID           string                 `json:"id"`
-	FirstName    string                 `json:"firstName"`
-	LastName     string                 `json:"lastName"`
-	Email        string                 `json:"email"`
-	Type         string                 `json:"type"`
-	Status       string                 `json:"status"`
-	BusinessName string                 `json:"businessName,omitempty"`
-	IPAddress    string                 `json:"ipAddress"`
-	CreatedAt    string                 `json:"created"`
-	DateOfBirth  string                 `json:"dateOfBirth,omitempty"`
-	SSN          string                 `json:"ssn,omitempty"`
-	State        string                 `json:"state"`
-	PostalCode   string                 `json:"postalCode"`
-	City         string                 `json:"city"`
-	Address      string                 `json:"address1,omitempty"`
-	Passport     string                 `json:"passport,omitempty"`
-	Links        map[string]client.Link `json:"_links"`
+	ID           string          `json:"id"`
+	FirstName    string          `json:"firstName"`
+	LastName     string          `json:"lastName"`
+	Email        string          `json:"email"`
+	Type         string          `json:"type"`
+	Status       string          `json:"status"`
+	BusinessName string          `json:"businessName"`
+	IPAddress    string          `json:"ipAddress"`
+	CreatedAt    string          `json:"created"`
+	Links        map[string]Link `json:"_links"`
 }
 
 // Document is a file sumbitted to dwolla to be validated
 type Document struct {
-	Client    client.DwollaClient
-	Links     map[string]client.Link `json:"_links"`
-	ID        string                 `json:"id"`
-	Status    string                 `json:"status"`
-	Type      string                 `json:"passport"`
-	CreatedAt string                 `json:"created"`
+	Links     map[string]Link `json:"_links"`
+	ID        string          `json:"id"`
+	Status    string          `json:"status"`
+	Type      string          `json:"passport"`
+	CreatedAt string          `json:"created"`
 }
 
 type listCustomersResponse struct {
-	Links    map[string]client.Link `json:"_links"`
-	Embedded map[string][]Customer  `json:"_embedded"`
+	Links    map[string]Link       `json:"_links"`
+	Embedded map[string][]Customer `json:"_embedded"`
 }
 
 type listDocumentsResponse struct {
-	Links    map[string]client.Link `json:"_links"`
-	Embedded map[string][]Document  `json:"_embedded"`
+	Links    map[string]Link       `json:"_links"`
+	Embedded map[string][]Document `json:"_embedded"`
 }
 
 type createFudingSourceToken struct {
@@ -64,51 +50,48 @@ type createFudingSourceToken struct {
 }
 
 // Create a new customer
-func Create(c client.DwollaClient, cu *Customer) (string, error) {
+func Create(c *Client, cu *Customer) error {
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
-		return "", errors.Wrap(err, "failed to get auth token")
+		return errors.Wrap(err, "failed to get auth token")
 	}
 	body, err := json.Marshal(cu)
 	if err != nil {
-		return "", errors.Wrap(err, "error marshalling customer into req body")
+		return errors.Wrap(err, "error marshalling customer into req body")
 	}
-	req, err := http.NewRequest("POST", c.RootURL()+"/customers/", bytes.NewReader(body))
+	req, err := http.NewRequest("POST", c.Links["customers"]["href"], bytes.NewReader(body))
 	if err != nil {
-		return "", errors.Wrap(err, "error creating the request")
+		return errors.Wrap(err, "error creating the request")
 	}
 	req.Header.Add("Authorization", "Bearer "+token)
 	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
 	req.Header.Add("Content-Type", "application/vnd.dwolla.v1.hal+json")
 	res, err := hc.Do(req)
 	if err != nil {
-		return "", errors.Wrap(err, "failed to make request to dwolla api")
+		return errors.Wrap(err, "failed to make request to dwolla api")
 	}
 	defer res.Body.Close()
 	switch res.StatusCode {
 	case 201:
-		return strings.TrimPrefix(res.Header.Get("Location"), c.RootURL()+"/customers/"), nil
+		return nil
 	case 403:
-		return "", errors.New("not authorized to create customers")
-	case 400:
-		io.Copy(os.Stdout, res.Body)
-		return "", errors.New("duplicate customer or validation error")
+		return errors.New("not authorized to create customers")
 	case 404:
-		return "", errors.New("account not found")
+		return errors.New("account not found")
 	default:
-		return "", errors.New(res.Status)
+		return errors.New(res.Status)
 	}
 }
 
 // List retrieves a list of created customers
-func List(c client.DwollaClient) ([]Customer, error) {
+func List(c *Client) ([]Customer, error) {
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", c.RootURL()+"/customers/", nil)
+	req, err := http.NewRequest("GET", c.Links["customers"]["href"], nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating the request")
 	}
@@ -124,9 +107,6 @@ func List(c client.DwollaClient) ([]Customer, error) {
 		d := json.NewDecoder(res.Body)
 		body := &listCustomersResponse{}
 		err = d.Decode(body)
-		for _, customer := range body.Embedded["customers"] {
-			customer.Client = c
-		}
 		return body.Embedded["customers"], nil
 	case 403:
 		return nil, errors.New("not authorized to list customers")
@@ -138,13 +118,13 @@ func List(c client.DwollaClient) ([]Customer, error) {
 }
 
 // GetCustomer retrieves a customer belonging to the authorized Dwolla Master Account by it's ID
-func GetCustomer(c client.DwollaClient, customerID string) (*Customer, error) {
+func GetCustomer(c *Client, customerID string) (*Customer, error) {
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", c.RootURL()+"/customers/"+customerID, nil)
+	req, err := http.NewRequest("GET", c.Links["customers"]["href"]+"/"+customerID, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating the request")
 	}
@@ -160,7 +140,6 @@ func GetCustomer(c client.DwollaClient, customerID string) (*Customer, error) {
 		d := json.NewDecoder(res.Body)
 		body := &Customer{}
 		err = d.Decode(body)
-		body.Client = c
 		return body, nil
 	case 403:
 		return nil, errors.New("not authorized to retrieve the customer")
@@ -177,8 +156,7 @@ func GetCustomer(c client.DwollaClient, customerID string) (*Customer, error) {
 // suspend a Customer, deactivate a Customer,
 // reactivate a Customer,
 // and update a verified Customer’s information to retry verification.
-func (cu *Customer) Update() error {
-	var c = cu.Client
+func (cu *Customer) Update(c *Client) error {
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -188,7 +166,7 @@ func (cu *Customer) Update() error {
 	if err != nil {
 		return errors.Wrap(err, "error marshalling customer into req body")
 	}
-	req, err := http.NewRequest("POST", c.RootURL()+"/customers/"+cu.ID, bytes.NewReader(body))
+	req, err := http.NewRequest("POST", cu.Links["self"].Href, bytes.NewReader(body))
 	if err != nil {
 		return errors.Wrap(err, "error creating the request")
 	}
@@ -218,8 +196,7 @@ func (cu *Customer) Update() error {
 // TODO : Add RetrieveBusinessClassification Method
 
 // AddDocument uploads a document to a customer for verification
-func (cu *Customer) AddDocument(file *os.File, documentType string) error {
-	var c = cu.Client
+func (cu *Customer) AddDocument(c *Client, file *os.File, documentType string) error {
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -243,7 +220,7 @@ func (cu *Customer) AddDocument(file *os.File, documentType string) error {
 		return errors.Wrap(err, "error uploading file")
 	}
 	writer.Close()
-	req, err := http.NewRequest("POST", c.RootURL()+"/customers/+"+cu.ID+"/documents", body)
+	req, err := http.NewRequest("POST", cu.Links["self"].Href+"/documents", body)
 	if err != nil {
 		return errors.Wrap(err, "error creating the request")
 	}
@@ -270,14 +247,13 @@ func (cu *Customer) AddDocument(file *os.File, documentType string) error {
 }
 
 // ListDocuments retrieves documents submitted to be validated for this customer
-func (cu *Customer) ListDocuments() ([]Document, error) {
-	var c = cu.Client
+func (cu *Customer) ListDocuments(c *Client) ([]Document, error) {
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", c.RootURL()+"/customers/"+cu.ID+"/documents", nil)
+	req, err := http.NewRequest("GET", cu.Links["self"].Href+"/documents", nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating the request")
 	}
@@ -308,7 +284,7 @@ func (cu *Customer) ListDocuments() ([]Document, error) {
 // TODO : Add ListDocumentsForBenificialOwner method.
 
 // GetDocument retrieves a docuemnt by ID
-func GetDocument(c client.DwollaClient, docuemntID string) (*Document, error) {
+func GetDocument(c *Client, docuemntID string) (*Document, error) {
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -341,24 +317,19 @@ func GetDocument(c client.DwollaClient, docuemntID string) (*Document, error) {
 }
 
 // CreateFundingSource creates a funding source for a customer
-func (cu *Customer) CreateFundingSource(f *funding.Resource) error {
-	var c = cu.Client
+func (cu *Customer) CreateFundingSource(c *Client, f *Resource) error {
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
 		return errors.Wrap(err, "failed to get auth token")
 	}
-	body, err := json.Marshal(f)
-	if err != nil {
-		return errors.Wrap(err, "error marshalling customer into req body")
-	}
-	req, err := http.NewRequest("POST", c.RootURL()+"/customers/"+cu.ID+"/funding-sources", bytes.NewReader(body))
+	req, err := http.NewRequest("POST", cu.Links["self"].Href+"/funding-sources", nil)
 	if err != nil {
 		return errors.Wrap(err, "error creating the request")
 	}
 	req.Header.Add("Authorization", "Bearer "+token)
 	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
-	req.Header.Add("Content-Type", "application/vnd.dwolla.v1.hal+json")
+	req.Header.Add("Conetent-Type", "application/vnd.dwolla.v1.hal+json")
 	res, err := hc.Do(req)
 	if err != nil {
 		return errors.Wrap(err, "failed to make request to dwolla api")
@@ -377,21 +348,19 @@ func (cu *Customer) CreateFundingSource(f *funding.Resource) error {
 }
 
 // CreateFundingSourceToken creates a new funding source from a token via dwolla.js
-func (cu *Customer) CreateFundingSourceToken() (string, error) {
-	var c = cu.Client
+func (cu *Customer) CreateFundingSourceToken(c *Client) (string, error) {
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to get auth token")
 	}
-
-	req, err := http.NewRequest("POST", c.RootURL()+"/customers/"+cu.ID+"/funding-sources-token", nil)
+	req, err := http.NewRequest("POST", cu.Links["self"].Href+"/funding-sources-token", nil)
 	if err != nil {
 		return "", errors.Wrap(err, "error creating the request")
 	}
 	req.Header.Add("Authorization", "Bearer "+token)
 	req.Header.Add("Accept", "application/vnd.dwolla.v1.hal+json")
-	req.Header.Add("Content-Type", "application/vnd.dwolla.v1.hal+json")
+	req.Header.Add("Conetent-Type", "application/vnd.dwolla.v1.hal+json")
 	res, err := hc.Do(req)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to make request to dwolla api")
@@ -411,14 +380,13 @@ func (cu *Customer) CreateFundingSourceToken() (string, error) {
 }
 
 // CreateIAVFundingSourceToken creates a token to add and verify
-func (cu *Customer) CreateIAVFundingSourceToken() (string, error) {
-	var c = cu.Client
+func (cu *Customer) CreateIAVFundingSourceToken(c *Client) (string, error) {
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("POST", c.RootURL()+"/customers/"+cu.ID+"/iav-token", nil)
+	req, err := http.NewRequest("POST", cu.Links["self"].Href+"/iav-token", nil)
 	if err != nil {
 		return "", errors.Wrap(err, "error creating the request")
 	}
@@ -444,14 +412,13 @@ func (cu *Customer) CreateIAVFundingSourceToken() (string, error) {
 }
 
 // ListFundingSources retrieves funding sources that belong to the customer.
-func (cu *Customer) ListFundingSources() ([]funding.Resource, error) {
-	var c = cu.Client
+func (cu *Customer) ListFundingSources(c *Client) ([]Resource, error) {
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", c.RootURL()+"/customers"+cu.ID+"/funding-sources", nil)
+	req, err := http.NewRequest("GET", cu.Links["self"].Href+"/funding-sources", nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating the request")
 	}
@@ -466,11 +433,8 @@ func (cu *Customer) ListFundingSources() ([]funding.Resource, error) {
 	switch res.StatusCode {
 	case 200:
 		d := json.NewDecoder(res.Body)
-		body := &funding.ListResourcesResponse{}
+		body := &ListResourcesResponse{}
 		err = d.Decode(body)
-		for _, source := range body.Embedded["funding-source"] {
-			source.Client = cu.Client
-		}
 		return body.Embedded["funding-sources"], nil
 	case 403:
 		return nil, errors.New("not authorized to list funding sources")
@@ -482,8 +446,7 @@ func (cu *Customer) ListFundingSources() ([]funding.Resource, error) {
 }
 
 // ListTransfers retrieves the customer's list of transfers.
-func (cu *Customer) ListTransfers() ([]transfer.Transfer, error) {
-	var c = cu.Client
+func (cu *Customer) ListTransfers(c *Client) ([]Transfer, error) {
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -503,7 +466,7 @@ func (cu *Customer) ListTransfers() ([]transfer.Transfer, error) {
 	switch res.StatusCode {
 	case 200:
 		d := json.NewDecoder(res.Body)
-		body := &transfer.ListTransferResponse{}
+		body := &ListTransferResponse{}
 		err = d.Decode(body)
 		return body.Embedded["transfers"], nil
 	case 403:
