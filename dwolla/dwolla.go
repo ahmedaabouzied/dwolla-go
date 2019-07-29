@@ -21,7 +21,7 @@ const (
 
 // Client wraps the client.Client to dwolla.Client
 type Client struct {
-	Client *client.Client
+	Client client.DwollaClient
 }
 
 // CreateClient creates a new dwolla client.

@@ -160,6 +160,9 @@ func GetCustomer(c client.DwollaClient, customerID string) (*Customer, error) {
 		d := json.NewDecoder(res.Body)
 		body := &Customer{}
 		err = d.Decode(body)
+		if err != nil {
+			return nil, errors.Wrap(err, "error parsing JSON response")
+		}
 		body.Client = c
 		return body, nil
 	case 403:

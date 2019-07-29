@@ -3,10 +3,10 @@ package transfer
 
 import (
 	"bytes"
-	"io"
-	"os"
 	"encoding/json"
+	"io"
 	"net/http"
+	"os"
 
 	"github.com/ahmedaabouzied/dwolla-go/dwolla/client"
 	"github.com/ahmedaabouzied/dwolla-go/dwolla/funding"
@@ -15,7 +15,8 @@ import (
 
 // Transfer has the fields to make a transfer between two funding sources.
 type Transfer struct {
-	Client        *client.Client
+	Client        client.DwollaClient
+	ID            string                 `json:"id"`
 	Links         map[string]client.Link `json:"_links"`
 	Amount        *funding.Amount        `json:"amount"`
 	Metadata      map[string]string      `json:"metadata"`
@@ -24,6 +25,12 @@ type Transfer struct {
 	Status        string                 `json:"status"`
 	CreatedAt     string                 `json:"created"`
 	Clearing      map[string]string      `json:"clearing"`
+}
+
+// Fees charged on a created transfer
+type Fees struct {
+	Transactions []Transfer `json:"transaction"`
+	Total        int        `json:"total"`
 }
 
 // ListTransferResponse is the response for list transfers end point.
@@ -40,7 +47,7 @@ type OnDemandAuthResponse struct {
 }
 
 // CreateTransfer initiates a new transfer between two funding sources.
-func CreateTransfer(c *client.Client, transfer *Transfer) error {
+func CreateTransfer(c client.DwollaClient, transfer *Transfer) error {
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -68,7 +75,7 @@ func CreateTransfer(c *client.Client, transfer *Transfer) error {
 	case 401:
 		return errors.New("invalid access token")
 	case 400:
-		io.Copy(os.Stdout,res.Body)
+		io.Copy(os.Stdout, res.Body)
 		return errors.New(res.Status)
 	case 403:
 		return errors.New("Not authorized to create a transfer")
@@ -80,7 +87,7 @@ func CreateTransfer(c *client.Client, transfer *Transfer) error {
 }
 
 // GetTransfer retrieves a transaction
-func GetTransfer(c *client.Client, transferID string) (*Transfer, error) {
+func GetTransfer(c client.DwollaClient, transferID string) (*Transfer, error) {
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -98,7 +105,7 @@ func GetTransfer(c *client.Client, transferID string) (*Transfer, error) {
 	}
 	defer res.Body.Close()
 	switch res.StatusCode {
-	case 201:
+	case 200:
 		d := json.NewDecoder(res.Body)
 		body := &Transfer{}
 		err = d.Decode(body)
@@ -112,14 +119,14 @@ func GetTransfer(c *client.Client, transferID string) (*Transfer, error) {
 }
 
 // ListFees retrieves a list of the fees of the transfer
-func (t *Transfer) ListFees() (*Transfer, error) {
+func (t *Transfer) ListFees() (*Fees, error) {
 	var c = t.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", t.Links["self"].Href+"/fees", nil)
+	req, err := http.NewRequest("GET", c.RootURL()+"/transfers/"+t.ID+"/fees", nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating the request")
 	}
@@ -133,8 +140,11 @@ func (t *Transfer) ListFees() (*Transfer, error) {
 	switch res.StatusCode {
 	case 200:
 		d := json.NewDecoder(res.Body)
-		body := &Transfer{}
+		body := &Fees{}
 		err = d.Decode(body)
+		if err != nil {
+			return nil, errors.Wrap(err, "error parsing JSON response")
+		}
 		return body, nil
 	case 404:
 		return nil, errors.New("transfer not found")
@@ -144,14 +154,14 @@ func (t *Transfer) ListFees() (*Transfer, error) {
 }
 
 // Failure retrieves the failure reassons of a transfer.
-func (t *Transfer) Failure() (*map[string]string, error) {
+func (t *Transfer) Failure() (*client.DwollaError, error) {
 	var c = t.Client
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", t.Links["self"].Href+"/failure", nil)
+	req, err := http.NewRequest("GET", c.RootURL()+"/transfers"+t.ID+"/failure", nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating the request")
 	}
@@ -165,8 +175,11 @@ func (t *Transfer) Failure() (*map[string]string, error) {
 	switch res.StatusCode {
 	case 200:
 		d := json.NewDecoder(res.Body)
-		body := &map[string]string{}
+		body := &client.DwollaError{}
 		err = d.Decode(body)
+		if err != nil {
+			return nil, errors.Wrap(err, "error parsing JSON response")
+		}
 		return body, nil
 	case 404:
 		return nil, errors.New("transfer not found")
@@ -187,7 +200,7 @@ func (t *Transfer) Cancel() (*Transfer, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "error marshalling json requset body")
 	}
-	req, err := http.NewRequest("POST", t.Links["self"].Href, bytes.NewReader(body))
+	req, err := http.NewRequest("POST", c.RootURL()+"/transfers/"+t.ID, bytes.NewReader(body))
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating the request")
 	}
@@ -203,6 +216,9 @@ func (t *Transfer) Cancel() (*Transfer, error) {
 		d := json.NewDecoder(res.Body)
 		body := &Transfer{}
 		err = d.Decode(body)
+		if err != nil {
+			return nil, errors.Wrap(err, "error parsing JSON response")
+		}
 		return body, nil
 	case 404:
 		return nil, errors.New("transfer not found")
@@ -216,7 +232,7 @@ func (t *Transfer) Cancel() (*Transfer, error) {
 // from their bank account using ACH at a later point in time for products or services delivered.
 // This on-demand authorization is supplied along with the Customer’s bank details when creating
 // a new Customer funding source.
-func CreateOnDemandAuth(c *client.Client) (string, error) {
+func CreateOnDemandAuth(c client.DwollaClient) (string, error) {
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
@@ -239,6 +255,9 @@ func CreateOnDemandAuth(c *client.Client) (string, error) {
 		d := json.NewDecoder(res.Body)
 		body := &OnDemandAuthResponse{}
 		err = d.Decode(body)
+		if err != nil {
+			return "", errors.Wrap(err, "error parsing JSON response")
+		}
 		return body.Links["self"].Href, nil
 	case 404:
 		return "", errors.New("transfer not found")

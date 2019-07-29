@@ -39,6 +39,13 @@ type Link struct {
 	ResourceType string `json:"resource-type"`
 }
 
+// DwollaError represents an error returned by dwolla api.
+type DwollaError struct {
+	Links       map[string]Link `json:"_links"`
+	Code        string          `json:"code"`
+	Description string          `json:"description"`
+}
+
 // CreateClient creates a new Dwolla Client
 func CreateClient(env string, clientID string, clientSecret string) (DwollaClient, error) {
 	c := &Client{
