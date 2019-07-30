@@ -111,6 +111,9 @@ func (a *Account) ListFundingResources() ([]funding.Resource, error) {
 		d := json.NewDecoder(res.Body)
 		body := &funding.ListResourcesResponse{}
 		err = d.Decode(body)
+		if err != nil {
+			return nil, errors.Wrap(err, "error parsing JSON response")
+		}
 		return body.Embedded["funding-sources"], nil
 	case 403:
 		return nil, errors.New("not authorized to list funding sources")
@@ -147,6 +150,9 @@ func (a *Account) ListMassPayments() ([]masspayment.MassPayment, error) {
 		d := json.NewDecoder(res.Body)
 		body := &masspayment.ListMassPaymentsResponse{}
 		err = d.Decode(body)
+		if err != nil {
+			return nil, errors.Wrap(err, "error parsing JSON response")
+		}
 		return body.Embedded["mass-payments"], nil
 	case 403:
 		return nil, errors.New("not authorized to list mass payments")
