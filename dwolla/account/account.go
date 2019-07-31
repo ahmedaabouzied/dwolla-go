@@ -23,6 +23,7 @@ type Account struct {
 
 // RetrieveAccount returns the Dwolla master account
 func RetrieveAccount(c client.DwollaClient) (*Account, error) {
+	log.Print(c.Links())
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
