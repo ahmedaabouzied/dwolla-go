@@ -4,6 +4,7 @@ package account
 import (
 	"bytes"
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/ahmedaabouzied/dwolla-go/dwolla/client"
@@ -39,6 +40,7 @@ func RetrieveAccount(c client.DwollaClient) (*Account, error) {
 	}
 	defer res.Body.Close()
 	if res.StatusCode != 200 {
+		log.Printf(req.URL.String())
 		return nil, errors.New(res.Status)
 	}
 	acc := &Account{}
