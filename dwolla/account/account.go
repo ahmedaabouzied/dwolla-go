@@ -4,7 +4,6 @@ package account
 import (
 	"bytes"
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/ahmedaabouzied/dwolla-go/dwolla/client"
@@ -23,13 +22,12 @@ type Account struct {
 
 // RetrieveAccount returns the Dwolla master account
 func RetrieveAccount(c client.DwollaClient) (*Account, error) {
-	log.Print(c.Links())
 	hc := &http.Client{}
 	token, err := c.AuthToken()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", c.Links()["self"]["href"], nil)
+	req, err := http.NewRequest("GET", c.Links()["account"]["href"], nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating get root request")
 	}
@@ -41,7 +39,6 @@ func RetrieveAccount(c client.DwollaClient) (*Account, error) {
 	}
 	defer res.Body.Close()
 	if res.StatusCode != 200 {
-		log.Printf(req.URL.String())
 		return nil, errors.New(res.Status)
 	}
 	acc := &Account{}
