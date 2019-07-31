@@ -27,7 +27,7 @@ func RetrieveAccount(c client.DwollaClient) (*Account, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", c.Links()["account"]["href"], nil)
+	req, err := http.NewRequest("GET", c.Links()["self"]["href"], nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating get root request")
 	}
