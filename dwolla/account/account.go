@@ -95,7 +95,7 @@ func (a *Account) ListFundingResources() ([]funding.Resource, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", c.RootURL()+"/accounts/"+a.ID+"/funding-sources/", nil)
+	req, err := http.NewRequest("GET", c.RootURL()+"/accounts/"+a.ID+"/funding-sources", nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating the request")
 	}
@@ -134,7 +134,7 @@ func (a *Account) ListMassPayments() ([]masspayment.MassPayment, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", c.RootURL()+"/accounts"+a.ID+"/mass-payments/", nil)
+	req, err := http.NewRequest("GET", c.RootURL()+"/accounts"+a.ID+"/mass-payments", nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating the request")
 	}

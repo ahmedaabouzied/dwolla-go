@@ -74,7 +74,7 @@ func Create(c client.DwollaClient, cu *Customer) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "error marshalling customer into req body")
 	}
-	req, err := http.NewRequest("POST", c.RootURL()+"/customers/", bytes.NewReader(body))
+	req, err := http.NewRequest("POST", c.RootURL()+"/customers", bytes.NewReader(body))
 	if err != nil {
 		return "", errors.Wrap(err, "error creating the request")
 	}
@@ -108,7 +108,7 @@ func List(c client.DwollaClient) ([]Customer, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", c.RootURL()+"/customers/", nil)
+	req, err := http.NewRequest("GET", c.RootURL()+"/customers", nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating the request")
 	}
@@ -454,7 +454,7 @@ func (cu *Customer) ListFundingSources() ([]funding.Resource, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get auth token")
 	}
-	req, err := http.NewRequest("GET", c.RootURL()+"/customers"+cu.ID+"/funding-sources", nil)
+	req, err := http.NewRequest("GET", c.RootURL()+"/customers/"+cu.ID+"/funding-sources", nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "error creating the request")
 	}
