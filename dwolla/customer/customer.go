@@ -471,10 +471,27 @@ func (cu *Customer) ListFundingSources() ([]funding.Resource, error) {
 		d := json.NewDecoder(res.Body)
 		body := &funding.ListResourcesResponse{}
 		err = d.Decode(body)
-		for _, source := range body.Embedded["funding-source"] {
-			source.Client = cu.Client
+		var sources []funding.Resource
+		for _, s := range body.Embedded["funding-source"] {
+			source := funding.Resource{
+				Client:          cu.Client,
+				ID:              s.ID,
+				Status:          s.Status,
+				AccountNumber:   s.AccountNumber,
+				RoutingNumber:   s.RoutingNumber,
+				BankAccountType: s.BankAccountType,
+				Name:            s.Name,
+				BankName:        s.BankName,
+				Type:            s.Type,
+				CreatedAt:       s.CreatedAt,
+				Removed:         s.Removed,
+				PlaidToken:      s.PlaidToken,
+				Channels:        s.Channels,
+				Links:           s.Links,
+			}
+			sources = append(sources, source)
 		}
-		return body.Embedded["funding-sources"], nil
+		return sources, nil
 	case 403:
 		return nil, errors.New("not authorized to list funding sources")
 	case 404:
