@@ -245,7 +245,7 @@ func TestCreateFundingSource(t *testing.T) {
 func TestListFundingSources(t *testing.T) {
 	stubAcc := stubAccount()
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprint(w)
+		fmt.Fprint(w, mockFundingSources)
 	}))
 	defer ts.Close()
 

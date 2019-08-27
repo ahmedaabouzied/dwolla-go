@@ -472,7 +472,7 @@ func (cu *Customer) ListFundingSources() ([]funding.Resource, error) {
 		body := &funding.ListResourcesResponse{}
 		err = d.Decode(body)
 		var sources []funding.Resource
-		for _, s := range body.Embedded["funding-source"] {
+		for _, s := range body.Embedded["funding-sources"] {
 			source := funding.Resource{
 				Client:          cu.Client,
 				ID:              s.ID,
